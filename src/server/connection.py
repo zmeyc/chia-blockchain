@@ -87,18 +87,24 @@ class ChiaConnection:
         size : bytes = b''
         try:
             # Need timeout here in case connection is closed, this allows GC to clean up
-            size = await asyncio.wait_for(self.reader.readexactly(LENGTH_BYTES), timeout=10 * 60)
+            size = await self.reader.readexactly(LENGTH_BYTES)
         except asyncio.TimeoutError:
             raise TimeoutError("self.reader.readexactly(LENGTH_BYTES)")
+
+        if size == b'':
+            raise ValueError("Empty Message")
 
         full_message_length = int.from_bytes(size, "big")
 
         full_message : bytes = b''
         try:
             # Need timeout here in case connection is closed, this allows GC to clean up
-            full_message = await asyncio.wait_for(self.reader.readexactly(full_message_length), timeout=10 * 60)
+            full_message = await self.reader.readexactly(full_message_length)
         except asyncio.TimeoutError:
             raise TimeoutError("self.reader.readexactly(full_message_length)")
+
+        if full_message == b'':
+            raise ValueError("Empty Message")
 
         full_message_loaded: Any = cbor.loads(full_message)
         self.bytes_read += LENGTH_BYTES + full_message_length
