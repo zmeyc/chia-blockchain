@@ -10,7 +10,7 @@ from src.types.peer_info import PeerInfo
 from src.util.ints import uint16, uint32
 from tests.setup_nodes import setup_simulators_and_wallets
 from src.consensus.block_rewards import calculate_base_fee, calculate_block_reward
-from src.wallet.escrow_wallet.recoverable_wallet import RecoverableWallet, DurationType
+from src.wallet.escrow_wallet.recoverable_wallet import RecoverableWallet, DurationType, ProgramHash
 
 
 @pytest.fixture(scope="module")
@@ -55,7 +55,7 @@ class TestWalletSimulator:
         wallet = wallet_node.wallet_state_manager.main_wallet
 
         escrow_wallet: RecoverableWallet = await RecoverableWallet.create(
-            wallet_node.wallet_state_manager, wallet,
+            wallet_node.wallet_state_manager,
             Decimal('1.1'),
             1,
             DurationType.BLOCKS
@@ -84,7 +84,15 @@ class TestWalletSimulator:
         wallet_node, server_2 = wallets[0]
         wallet_node_2, server_3 = wallets[1]
         wallet = wallet_node.wallet_state_manager.main_wallet
-        ph = await wallet.get_new_puzzlehash()
+
+        escrow_wallet: RecoverableWallet = await RecoverableWallet.create(
+            wallet_node.wallet_state_manager,
+            Decimal('1.1'),
+            1,
+            DurationType.BLOCKS
+        )
+
+        ph = await escrow_wallet.get_new_puzzlehash()
 
         await server_2.start_client(PeerInfo("localhost", uint16(server_1._port)), None)
 
@@ -100,19 +108,19 @@ class TestWalletSimulator:
 
         await asyncio.sleep(2)
 
-        assert await wallet.get_confirmed_balance() == funds
-        assert await wallet.get_unconfirmed_balance() == funds
+        assert await escrow_wallet.get_confirmed_balance() == funds
+        assert await escrow_wallet.get_unconfirmed_balance() == funds
+        assert await escrow_wallet.get_unconfirmed_spendable() == funds
 
-        tx = await wallet.generate_signed_transaction(
-            10,
-            await wallet_node_2.wallet_state_manager.main_wallet.get_new_puzzlehash(),
-            0,
+        tx = await escrow_wallet.generate_signed_transaction(
+                10,
+                await wallet_node_2.wallet_state_manager.main_wallet.get_new_puzzlehash()
         )
-        await wallet.push_transaction(tx)
+        await escrow_wallet.push_transaction(tx)
 
         await asyncio.sleep(2)
-        confirmed_balance = await wallet.get_confirmed_balance()
-        unconfirmed_balance = await wallet.get_unconfirmed_balance()
+        confirmed_balance = await escrow_wallet.get_confirmed_balance()
+        unconfirmed_balance = await escrow_wallet.get_unconfirmed_balance()
 
         assert confirmed_balance == funds
         assert unconfirmed_balance == funds - 10
@@ -129,8 +137,8 @@ class TestWalletSimulator:
             ]
         )
 
-        confirmed_balance = await wallet.get_confirmed_balance()
-        unconfirmed_balance = await wallet.get_unconfirmed_balance()
+        confirmed_balance = await escrow_wallet.get_confirmed_balance()
+        unconfirmed_balance = await escrow_wallet.get_unconfirmed_balance()
 
         assert confirmed_balance == new_funds - 10
         assert unconfirmed_balance == new_funds - 10

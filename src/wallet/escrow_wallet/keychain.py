@@ -1,10 +1,10 @@
-from src.types import BLSSignature
+from src.types.BLSSignature import BLSSignature
 from src.util.condition_tools import (
     conditions_for_solution,
     hash_key_pairs_for_conditions_dict,
     conditions_by_opcode
 )
-from src.wallet.BLSPrivateKey import BLSPrivateKey
+from ..BLSPrivateKey import BLSPrivateKey
 
 
 class Keychain(dict):
@@ -25,7 +25,7 @@ class Keychain(dict):
 
     def signature_for_solution(self, solution):
         signatures = []
-        conditions_dict = conditions_by_opcode(conditions_for_solution(solution))
+        conditions_dict = conditions_by_opcode(conditions_for_solution(solution)[1])
         print(conditions_dict)
         for _ in hash_key_pairs_for_conditions_dict(conditions_dict):
             signature = self.sign(_)

@@ -26,7 +26,7 @@ def puzzle_program_for_index(index):
 
 
 def puzzle_hash_for_index(index):
-    return puzzle_program_for_index(index).get_hash()
+    return puzzle_program_for_index(index).get_tree_hash()
 
 
 def conditions_for_payment(puzzle_hash_amount_pairs):

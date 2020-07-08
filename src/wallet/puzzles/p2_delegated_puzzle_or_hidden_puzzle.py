@@ -18,7 +18,7 @@ import hashlib
 from clvm_tools import binutils
 
 from src.types.program import Program
-from clvm import run_program
+from clvm import run_program, to_sexp_f
 
 from .load_clvm import load_clvm
 
@@ -44,6 +44,7 @@ def calculate_synthetic_offset(public_key, hidden_puzzle_hash):
 
 def calculate_synthetic_public_key(public_key, hidden_puzzle):
     args = (public_key, hidden_puzzle)
+    args = to_sexp_f(args)
     r = run(
         "(point_add (f (a)) (pubkey_for_exp (sha256 (f (a)) (sha256tree (r (a))))))",
         args,

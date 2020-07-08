@@ -6,6 +6,11 @@ from src.types.BLSSignature import BLSSignature, BLSPublicKey
 from src.types.sized_bytes import bytes32
 
 
+GROUP_ORDER = (
+    52435875175126190479447740508185965837690552500527637822603658699938581184513
+)
+
+
 @dataclasses.dataclass
 class BLSPrivateKey:
 
@@ -17,6 +22,7 @@ class BLSPrivateKey:
 
     @classmethod
     def from_secret_exponent(cls, secret_exponent):
+        secret_exponent %= GROUP_ORDER
         blob = secret_exponent.to_bytes(32, "big")
         return cls(blspy.PrivateKey.from_bytes(blob))
 

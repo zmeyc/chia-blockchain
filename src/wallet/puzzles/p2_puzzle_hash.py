@@ -26,6 +26,6 @@ def puzzle_for_puzzle_hash(underlying_puzzle_hash):
 
 
 def solution_for_puzzle_and_solution(underlying_puzzle, underlying_solution):
-    underlying_puzzle_hash = underlying_puzzle.get_hash()
+    underlying_puzzle_hash = underlying_puzzle.get_tree_hash()
     puzzle_program = puzzle_for_puzzle_hash(underlying_puzzle_hash)
     return Program.to([puzzle_program, underlying_solution])
