@@ -39,7 +39,7 @@ def run(program, args):
 
 def calculate_synthetic_offset(public_key, hidden_puzzle_hash):
     blob = hashlib.sha256(bytes(public_key) + hidden_puzzle_hash).digest()
-    return int.from_bytes(blob, "big")
+    return int.from_bytes(blob, "big", signed=True)
 
 
 def calculate_synthetic_public_key(public_key, hidden_puzzle):
