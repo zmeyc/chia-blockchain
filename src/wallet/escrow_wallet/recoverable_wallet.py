@@ -440,13 +440,14 @@ class RecoverableWallet(Wallet):
 
     def get_keys_for_escrow_puzzle(self, hash):
         for child in range(self.next_address):
-            pubkey = self.wallet_state_manager.private_key.public_child(child)
+            pubkey = self.wallet_state_manager.private_key.public_child(child).get_public_key()
             escrow_hash = ProgramHash(self.get_escrow_puzzle_with_params(bytes(self.get_recovery_public_key()),
                                                                          bytes(pubkey),
                                                                          self.get_escrow_duration(),
                                                                          self.get_duration_type()))
             if hash == escrow_hash:
-                return pubkey, self.wallet_state_manager.private_key.private_child(child)
+                return pubkey,\
+                       BLSPrivateKey(self.wallet_state_manager.private_key.private_child(child).get_private_key())
 
     async def generate_signed_transaction(
             self,
@@ -706,3 +707,29 @@ class RecoverableWallet(Wallet):
             await self.push_transaction(tx_record)
         # for recovery_string in removals:
         #     self.escrow_coins.pop(recovery_string)
+
+    async def clawback(self, coins):
+        spend_bundle = await self.generate_clawback_transaction(coins)
+        now = uint64(int(time.time()))
+        add_list: List[Coin] = []
+        rem_list: List[Coin] = []
+        for addition in spend_bundle.additions():
+            add_list.append(addition)
+        for removal in spend_bundle.removals():
+            rem_list.append(removal)
+        tx_record = TransactionRecord(
+            confirmed_at_index=uint32(0),
+            created_at_time=now,
+            to_puzzle_hash=await self.get_new_puzzlehash(),  # incorrect
+            amount=uint64(0),  # incorrect
+            fee_amount=uint64(0),
+            incoming=False,
+            confirmed=False,
+            sent=uint32(0),
+            spend_bundle=spend_bundle,
+            additions=add_list,
+            removals=rem_list,
+            wallet_id=self.wallet_info.id,
+            sent_to=[],
+        )
+        await self.push_transaction(tx_record)
