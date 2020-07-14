@@ -57,7 +57,8 @@ const initial_state = {
     syncing: false
   },
   sending_transaction: false,
-  send_transaction_result: null
+  send_transaction_result: null,
+  show_create_backup: false
 };
 
 export const incomingReducer = (state = { ...initial_state }, action) => {
