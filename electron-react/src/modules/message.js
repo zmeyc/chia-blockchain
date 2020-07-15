@@ -237,3 +237,13 @@ export const create_rl_admin = (interval, limit, pubkey, amount) => {
   };
   return action;
 };
+
+export const create_rl_admin = () => {
+  var action = walletMessage();
+  action.message.command = "create_new_wallet";
+  action.message.data = {
+    wallet_type: "rl_wallet",
+    rl_type: "user"
+  };
+  return action;
+};
