@@ -1,4 +1,4 @@
-import { service_wallet_server } from "../util/service_names";
+        import { service_wallet_server } from "../util/service_names";
 import { openProgress } from "./progressReducer";
 
 export const clearSend = () => {
@@ -223,3 +223,17 @@ export const incomingMessage = message => ({
   type: "INCOMING_MESSAGE",
   message: message
 });
+
+export const create_rl_admin = (interval, limit, pubkey, amount) => {
+  var action = walletMessage();
+  action.message.command = "create_new_wallet";
+  action.message.data = {
+    wallet_type: "rl_wallet",
+    rl_type: "admin",
+    interval: interval,
+    limit: limit,
+    pubkey: pubkey,
+    amount: amount
+  };
+  return action;
+};
