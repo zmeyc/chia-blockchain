@@ -247,3 +247,16 @@ export const create_rl_admin = () => {
   };
   return action;
 };
+
+export const rl_set_user_info = (wallet_id, interval, limit, origin_id, admin_pubkey) => {
+  var action = walletMessage();
+  action.message.command = "rl_set_user_info";
+  action.message.data = {
+    wallet_id: wallet_id,
+    interval: interval,
+    limit: limit,
+    origin_id: origin_id,
+    admin_pubkey: admin_pubkey
+  };
+  return action;
+};
