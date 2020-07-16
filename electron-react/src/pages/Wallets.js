@@ -18,7 +18,8 @@ import {
   changeWalletMenu,
   createWallet,
   standardWallet,
-  CCWallet
+  CCWallet,
+  RLWallet
 } from "../modules/walletMenu";
 import { CreateWalletView } from "./CreateWallet";
 import ColouredWallet from "./ColouredWallet";
@@ -126,6 +127,8 @@ const WalletItem = props => {
       dispatch(changeWalletMenu(standardWallet, wallet.id));
     } else if (wallet.type === "COLOURED_COIN") {
       dispatch(changeWalletMenu(CCWallet, wallet.id));
+    } else if (wallet.type === "RATE_LIMITED") {
+      dispatch(changeWalletMenu(RLWallet, wallet.id));
     }
   }
 
@@ -157,6 +160,8 @@ const WalletViewSwitch = () => {
     return <CreateWalletView></CreateWalletView>;
   } else if (toPresent === CCWallet) {
     return <ColouredWallet wallet_id={id}> </ColouredWallet>;
+  } else if (toPresent === RLWallet) {
+    return <RateLimitedWallet wallet_id={id}> </RateLimitedWallet>;
   }
   return <div></div>;
 };
