@@ -112,7 +112,7 @@ class WalletNode:
         self.sync_generator_task = None
         self.server = None
 
-    async def _start(self, public_key_fingerprint: Optional[int] = None) -> bool:
+    async def _start(self, fingerprint: Optional[int] = None) -> bool:
         self._shut_down = False
         private_keys = self.keychain.get_all_private_keys()
         if len(private_keys) == 0:
