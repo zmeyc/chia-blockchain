@@ -5,6 +5,7 @@ from pathlib import Path
 
 from typing import List, Optional, Tuple, Dict, Callable
 
+from src.types.coin import Coin
 from src.util.byte_types import hexstr_to_bytes
 from src.util.keychain import (
     bytes_from_mnemonic,
@@ -73,10 +74,13 @@ class WalletRpcApi:
     async def rl_set_user_info(self, request):
         wallet_id = uint32(int(request["wallet_id"]))
         rl_user = self.service.wallet_state_manager.wallets[wallet_id]
+        origin: Coin = request["origin"];
         success = await rl_user.set_user_info(
             request["interval"],
             request["limit"],
-            request["origin_id"],
+            origin.parent_coin_info.hex(),
+            origin.puzzle_hash.hex(),
+            origin.amount,
             request["admin_pubkey"]
         )
         return {"success": success}
@@ -328,7 +332,10 @@ class WalletRpcApi:
                         request["pubkey"],
                         uint64(int(request["amount"]))
                     )
-                    return {"success": success, "type": rl_admin.wallet_info.type.name}
+                    return {"success": success,
+                            "type": rl_admin.wallet_info.type.name,
+                            "origin": rl_admin.rl_info.rl_origin,
+                            "pubkey": rl_admin.rl_info.admin_pubkey.hex()}
                 except Exception as e:
                     log.error("FAILED {e}")
                     return {"success": False, "reason": str(e)}
