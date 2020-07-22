@@ -247,3 +247,7 @@ export const rl_set_user_info = (wallet_id, interval, limit, origin_id, admin_pu
   };
   return action;
 };
+
+export const clawback_rl_coin = (wallet_id) => {
+  // THIS IS A PLACEHOLDER FOR RL CLAWBACK FUNCTIONALITY
+}
