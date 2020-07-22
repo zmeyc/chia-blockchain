@@ -83,16 +83,23 @@ def cc_make_solution(
     return Program(binutils.assemble(sol))
 
 
+def extract_hex_64(s: str, idx: int = -1):
+    items = [_.split(")")[0] for _ in s.split() if _.startswith("0x")]
+    r = items[idx][2:]
+    assert len(r) == 64
+    return r
+
+
 def get_genesis_from_puzzle(puzzle: str):
-    return puzzle[-2687:].split(")")[0]
+    return extract_hex_64(puzzle)
 
 
 def get_genesis_from_core(core: str):
-    return core[-2678:].split(")")[0]
+    return extract_hex_64(core)
 
 
 def get_innerpuzzle_from_puzzle(puzzle: str):
-    return puzzle[9:75]
+    return extract_hex_64(puzzle, idx=0)
 
 
 # Make sure that a generated E lock is spent in the spendbundle
@@ -158,7 +165,7 @@ def check_is_cc_puzzle(puzzle: Program):
     puzzle_string = binutils.disassemble(puzzle)
     if len(puzzle_string) < 4000:
         return False
-    inner_puzzle = puzzle_string[11:75]
+    inner_puzzle = extract_hex_64(puzzle_string, idx=0)
     if all(c in string.hexdigits for c in inner_puzzle) is not True:
         return False
     genesisCoin = get_genesis_from_puzzle(puzzle_string)
