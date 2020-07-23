@@ -1,5 +1,3 @@
-from secrets import token_bytes
-
 from src.full_node.full_node import FullNode
 from typing import AsyncGenerator, List, Optional
 from src.protocols import (
@@ -15,6 +13,9 @@ from src.types.spend_bundle import SpendBundle
 from src.types.header import Header
 from src.util.api_decorators import api_request
 from src.util.ints import uint64
+
+
+ENTROPY = b"entropy012345678"
 
 
 OutboundMessageGenerator = AsyncGenerator[OutboundMessage, None]
@@ -141,7 +142,7 @@ class FullNodeSimulator(FullNode):
             10,
             reward_puzzlehash=request.puzzle_hash,
             transaction_data_at_height=dict_h,
-            seed=token_bytes(),
+            seed=ENTROPY,
             fees=uint64(fees),
         )
         new_lca = more_blocks[-1]
@@ -165,7 +166,7 @@ class FullNodeSimulator(FullNode):
             block_count,
             current_blocks[:old_index],
             10,
-            seed=token_bytes(),
+            seed=ENTROPY,
             reward_puzzlehash=coinbase_ph,
             transaction_data_at_height={},
         )

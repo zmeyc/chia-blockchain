@@ -1278,6 +1278,7 @@ class FullNode:
         # Creates the block header
         prev_header_hash: bytes32 = target_tip.get_hash()
         timestamp: uint64 = uint64(int(time.time()))
+        timestamp = 1789
 
         # Create filter
         byte_array_tx: List[bytes32] = []

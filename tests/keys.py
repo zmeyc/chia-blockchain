@@ -18,8 +18,13 @@ def puzzle_program_for_index(index: uint32):
     )
 
 
+def public_key_bytes_for_index(index):
+    return bytes(MASTER_KEY.derive_child(index).get_g1())
+
+
 def puzzle_hash_for_index(index: uint32):
-    return puzzle_program_for_index(index).get_hash()
+    prog = puzzle_program_for_index(index)
+    return prog.get_tree_hash()
 
 
 def conditions_for_payment(puzzle_hash_amount_pairs):

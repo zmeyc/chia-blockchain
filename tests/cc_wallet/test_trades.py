@@ -1,7 +1,6 @@
 import asyncio
 import time
 from pathlib import Path
-from secrets import token_bytes
 
 import pytest
 
@@ -13,6 +12,8 @@ from src.wallet.trading.trade_status import TradeStatus
 from tests.setup_nodes import setup_simulators_and_wallets
 from src.wallet.cc_wallet.cc_wallet import CCWallet
 from src.wallet.cc_wallet import cc_wallet_puzzles
+
+ENTROPY = b"entropy012345678"
 
 
 @pytest.fixture(scope="module")
@@ -74,7 +75,7 @@ async def wallets_prefarm(two_wallet_nodes):
         await full_node.farm_new_block(FarmNewBlockProtocol(ph1))
 
     for i in range(0, buffer):
-        await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+        await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
     return wallet_node_0, wallet_node_1, full_node
 
@@ -91,7 +92,7 @@ class TestCCTrades:
         )
 
         for i in range(1, buffer_blocks):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         await time_out_assert(15, cc_wallet.get_confirmed_balance, 100)
         await time_out_assert(15, cc_wallet.get_unconfirmed_balance, 100)
@@ -106,7 +107,7 @@ class TestCCTrades:
         assert cc_wallet.cc_info.my_core == cc_wallet_2.cc_info.my_core
 
         for i in range(0, buffer_blocks):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         trade_manager_0 = wallet_node_0.wallet_state_manager.trade_manager
         trade_manager_1 = wallet_node_1.wallet_state_manager.trade_manager
@@ -142,7 +143,7 @@ class TestCCTrades:
         assert success is True
 
         for i in range(0, buffer_blocks):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         await time_out_assert(15, cc_wallet_2.get_confirmed_balance, 30)
         await time_out_assert(15, cc_wallet_2.get_unconfirmed_balance, 30)
@@ -168,7 +169,7 @@ class TestCCTrades:
         )
 
         for i in range(0, buffer_blocks):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         await time_out_assert(15, cc_a_3.get_confirmed_balance, 100)
         await time_out_assert(15, cc_a_3.get_unconfirmed_balance, 100)
@@ -177,7 +178,7 @@ class TestCCTrades:
         red = cc_wallet_puzzles.get_genesis_from_core(cc_a_3.cc_info.my_core)
 
         for i in range(0, buffer_blocks):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         cc_b_3: CCWallet = await CCWallet.create_wallet_for_cc(
             wallet_node_b.wallet_state_manager, wallet_b, red
@@ -186,7 +187,7 @@ class TestCCTrades:
         assert cc_a_3.cc_info.my_core == cc_b_3.cc_info.my_core
 
         for i in range(0, buffer_blocks):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         trade_manager_0 = wallet_node_a.wallet_state_manager.trade_manager
         trade_manager_1 = wallet_node_b.wallet_state_manager.trade_manager
@@ -225,7 +226,7 @@ class TestCCTrades:
 
         assert success is True
         for i in range(0, 10):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         await time_out_assert(15, cc_b_3.get_confirmed_balance, 50)
         await time_out_assert(15, cc_b_3.get_unconfirmed_balance, 50)
@@ -261,7 +262,7 @@ class TestCCTrades:
         )
 
         for i in range(0, buffer_blocks):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         await time_out_assert(15, cc_a_4.get_confirmed_balance, 100)
 
@@ -282,7 +283,7 @@ class TestCCTrades:
         success, trade_a, reason = await trade_manager_a.respond_to_offer(file_path)
 
         for i in range(0, buffer_blocks):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         await time_out_assert(15, cc_a_4.get_confirmed_balance, 40)
         await time_out_assert(15, cc_b_4.get_confirmed_balance, 60)
@@ -385,7 +386,7 @@ class TestCCTrades:
         await trade_manager_a.cancel_pending_offer_safely(trade_offer.trade_id)
 
         for i in range(0, buffer_blocks):
-            await full_node.farm_new_block(FarmNewBlockProtocol(token_bytes()))
+            await full_node.farm_new_block(FarmNewBlockProtocol(ENTROPY))
 
         await time_out_assert(15, wallet_a.get_spendable_balance, spendable_chia)
 

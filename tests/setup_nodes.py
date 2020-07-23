@@ -1,7 +1,7 @@
 import asyncio
+import hashlib
 import signal
 
-from secrets import token_bytes
 from typing import Dict, Tuple, List, Optional
 from src.consensus.constants import ConsensusConstants
 from src.full_node.full_node import FullNode
@@ -21,6 +21,9 @@ from src.util.ints import uint16, uint32
 from src.server.start_service import Service
 from src.util.make_test_constants import make_test_constants_with_genesis
 from tests.time_out_assert import time_out_assert
+
+
+ENTROPY = b"entropy012345678"
 
 
 test_constants, bt = make_test_constants_with_genesis(
@@ -148,7 +151,7 @@ async def setup_wallet_node(
         config["starting_height"] = starting_height
     config["initial_num_public_keys"] = 5
 
-    entropy = token_bytes(32)
+    entropy = hashlib.sha256(key_seed).digest()
     keychain = Keychain(entropy.hex(), True)
     keychain.add_private_key(bytes_to_mnemonic(entropy), "")
     first_pk = keychain.get_first_public_key()
