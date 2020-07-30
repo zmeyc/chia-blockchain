@@ -330,7 +330,11 @@ class Harvester:
         A signature is created on the header hash using the harvester private key. This can also
         be used for pooling.
         """
-        plot_info = self.provers[Path(request.plot_id).resolve()]
+        try:
+            plot_info = self.provers[Path(request.plot_id).resolve()]
+        except KeyError:
+            log.warning(f"KeyError plot {filename} does not exist.")
+            return
 
         local_sk = plot_info.local_sk
         agg_pk = ProofOfSpace.generate_plot_public_key(
