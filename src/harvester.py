@@ -334,7 +334,7 @@ class Harvester:
         try:
             plot_info = self.provers[Path(request.plot_id).resolve()]
         except KeyError:
-            log.warning(f"KeyError plot {filename} does not exist.")
+            log.warning(f"KeyError plot {request.plot_id} does not exist.")
             return
 
         local_sk = plot_info.local_sk
