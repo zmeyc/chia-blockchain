@@ -4,8 +4,6 @@ import time
 from pathlib import Path
 
 from typing import List, Optional, Tuple, Dict, Callable
-
-from src.types.coin import Coin
 from src.util.byte_types import hexstr_to_bytes
 from src.util.keychain import (
     bytes_from_mnemonic,
@@ -74,13 +72,13 @@ class WalletRpcApi:
     async def rl_set_user_info(self, request):
         wallet_id = uint32(int(request["wallet_id"]))
         rl_user = self.service.wallet_state_manager.wallets[wallet_id]
-        origin: Coin = request["origin"];
+        origin = request["origin"];
         success = await rl_user.set_user_info(
             uint64(request["interval"]),
             uint64(request["limit"]),
-            origin.parent_coin_info.hex(),
-            origin.puzzle_hash.hex(),
-            origin.amount,
+            origin["parent_coin_info"].hex(),
+            origin["puzzle_hash"].hex(),
+            origin["    amount"],
             request["admin_pubkey"]
         )
         return {"success": success}
