@@ -144,6 +144,7 @@ export const incomingReducer = (state = { ...initial_state }, action) => {
       } else if (command === "get_wallets") {
         if (data.success) {
           const wallets = data.wallets;
+          console.log(wallets)
           var wallets_state = [];
           for (let object of wallets) {
             id = parseInt(object.id);
@@ -156,17 +157,24 @@ export const incomingReducer = (state = { ...initial_state }, action) => {
       } else if (command === "get_wallet_balance") {
         if (data.success) {
           id = data.wallet_id;
+          console.log("ID: ", id)
           wallets = state.wallets;
           wallet = wallets[parseInt(id)];
           if (!wallet) {
             return state;
           }
           var balance = data.confirmed_wallet_balance;
+          console.log("Balance: ", balance)
           var unconfirmed_balance = data.unconfirmed_wallet_balance;
+          console.log("Unconfirmed balance: ", unconfirmed_balance)
           var pending_balance = unconfirmed_balance - balance;
+          console.log("Pending balance: ", pending_balance)
           var frozen_balance = data.frozen_balance;
+          console.log("Frozen balance: ", frozen_balance)
           var spendable_balance = data.spendable_balance;
+          console.log("Spendable balance: ", spendable_balance)
           var change_balance = data.pending_change;
+          console.log("Change balance: ", change_balance)
           wallet.balance_total = balance;
           wallet.balance_pending = pending_balance;
           wallet.balance_frozen = frozen_balance;
