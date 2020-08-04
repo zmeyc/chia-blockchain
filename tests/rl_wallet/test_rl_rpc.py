@@ -85,3 +85,5 @@ class TestCCWallet:
         for i in range(0, 2*num_blocks):
             await full_node_1.farm_new_block(FarmNewBlockProtocol(32 * b"\0"))
         assert await receiving_wallet.get_spendable_balance() == 3
+        balance = await api_user.get_wallet_balance({'wallet_id': 2})
+        assert balance['confirmed_wallet_balance'] == 97
