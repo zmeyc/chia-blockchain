@@ -264,10 +264,10 @@ class WalletRpcApi:
         pending_balance = await wallet.get_unconfirmed_balance()
         spendable_balance = await wallet.get_spendable_balance()
         pending_change = await wallet.get_pending_change_balance()
-        if wallet.wallet_info.type == WalletType.COLOURED_COIN:
-            frozen_balance = 0
-        else:
+        if wallet.wallet_info.type == WalletType.STANDARD_WALLET:
             frozen_balance = await wallet.get_frozen_amount()
+        else:
+            frozen_balance = 0
 
         response = {
             "wallet_id": wallet_id,
