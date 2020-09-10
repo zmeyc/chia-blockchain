@@ -14,6 +14,9 @@ This roughly corresponds to bitcoin's graftroot.
 
 from typing import List
 
+from clvm_tools import binutils
+
+from src.types.condition_opcodes import ConditionOpcode
 from src.types.program import Program
 
 from . import p2_conditions
@@ -26,6 +29,15 @@ MOD = load_clvm("p2_delegated_puzzle.clvm")
 
 def puzzle_for_pk(public_key: bytes) -> Program:
     return MOD.curry(public_key)
+
+
+def old_puzzle_for_pk(public_key: bytes) -> Program:
+    aggsig = ConditionOpcode.AGG_SIG[0]
+    TEMPLATE = (
+        f"(c (c (q {aggsig}) (c (q 0x%s) (c (sha256tree (f (a))) (q ())))) "
+        f"((c (f (a)) (f (r (a))))))"
+    )
+    return Program.to(binutils.assemble(TEMPLATE % public_key.hex()))
 
 
 def solution_for_conditions(puzzle_reveal, conditions) -> Program:

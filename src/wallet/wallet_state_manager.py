@@ -312,7 +312,24 @@ class WalletStateManager:
                         )
                     )
                     break
-
+                elif target_wallet.wallet_info.type == WalletType.STANDARD_WALLET:
+                    pubkey: G1Element = self.get_public_key(uint32(index))
+                    puzzle: Program = target_wallet.old_puzzle_for_pk(bytes(pubkey))
+                    if puzzle is None:
+                        continue
+                    puzzlehash: bytes32 = puzzle.get_tree_hash()
+                    self.log.info(
+                        f"Old Puzzle at index {index} wid {wallet_id} puzzle hash {puzzlehash.hex()}"
+                    )
+                    derivation_paths.append(
+                        DerivationRecord(
+                            uint32(index),
+                            puzzlehash,
+                            pubkey,
+                            target_wallet.wallet_info.type,
+                            uint32(target_wallet.wallet_info.id),
+                        )
+                    )
                 pubkey: G1Element = self.get_public_key(uint32(index))
                 puzzle: Program = target_wallet.puzzle_for_pk(bytes(pubkey))
                 if puzzle is None:

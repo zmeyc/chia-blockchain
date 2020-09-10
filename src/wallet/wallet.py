@@ -17,7 +17,7 @@ from src.util.condition_tools import (
 from src.util.ints import uint64, uint32
 from src.wallet.abstract_wallet import AbstractWallet
 from src.wallet.puzzles.p2_conditions import puzzle_for_conditions
-from src.wallet.puzzles.p2_delegated_puzzle import puzzle_for_pk
+from src.wallet.puzzles.p2_delegated_puzzle import puzzle_for_pk, old_puzzle_for_pk
 from src.wallet.puzzles.puzzle_utils import (
     make_assert_my_coin_id_condition,
     make_assert_time_exceeds_condition,
@@ -105,6 +105,9 @@ class Wallet(AbstractWallet):
 
     def puzzle_for_pk(self, pubkey: bytes) -> Program:
         return puzzle_for_pk(pubkey)
+
+    def old_puzzle_for_pk(self, pubkey: bytes) -> Program:
+        return old_puzzle_for_pk(pubkey)
 
     async def get_new_puzzle(self) -> Program:
         dr = await self.wallet_state_manager.get_unused_derivation_record(
@@ -248,6 +251,9 @@ class Wallet(AbstractWallet):
             # Get puzzle for pubkey
             pubkey, secretkey = maybe
             puzzle: Program = puzzle_for_pk(bytes(pubkey))
+
+            if puzzle.get_tree_hash() != coin.puzzle_hash:
+                puzzle: Program = old_puzzle_for_pk(bytes(pubkey))
 
             # Only one coin creates outputs
             if output_created is False and origin_id is None:
