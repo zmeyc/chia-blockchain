@@ -247,7 +247,7 @@ class Wallet(AbstractWallet):
             puzzle: Program = puzzle_for_pk(bytes(pubkey))
 
             if puzzle.get_tree_hash() != coin.puzzle_hash:
-                puzzle: Program = old_puzzle_for_pk(bytes(pubkey))
+                puzzle = old_puzzle_for_pk(bytes(pubkey))
 
             # Only one coin creates outputs
             if output_created is False and origin_id is None:

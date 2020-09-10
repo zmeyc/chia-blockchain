@@ -305,19 +305,20 @@ class WalletStateManager:
                     )
                     break
                 elif target_wallet.wallet_info.type == WalletType.STANDARD_WALLET:
-                    pubkey: G1Element = self.get_public_key(uint32(index))
-                    puzzle: Program = target_wallet.old_puzzle_for_pk(bytes(pubkey))
-                    if puzzle is None:
+                    # Creating duplicates
+                    s_pubkey: G1Element = self.get_public_key(uint32(index))
+                    s_puzzle: Program = target_wallet.old_puzzle_for_pk(bytes(s_pubkey))
+                    if s_puzzle is None:
                         continue
-                    puzzlehash: bytes32 = puzzle.get_tree_hash()
+                    s_puzzlehash: bytes32 = s_puzzle.get_tree_hash()
                     self.log.info(
-                        f"Old Puzzle at index {index} wid {wallet_id} puzzle hash {puzzlehash.hex()}"
+                        f"Old Puzzle at index {index} wid {wallet_id} puzzle hash {s_puzzlehash.hex()}"
                     )
                     derivation_paths.append(
                         DerivationRecord(
                             uint32(index),
-                            puzzlehash,
-                            pubkey,
+                            s_puzzlehash,
+                            s_pubkey,
                             target_wallet.wallet_info.type,
                             uint32(target_wallet.wallet_info.id),
                         )
