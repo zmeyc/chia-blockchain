@@ -116,11 +116,11 @@ class Wallet(AbstractWallet):
         return puzzle_for_pk(bytes(dr.pubkey))
 
     async def get_new_puzzlehash(self) -> bytes32:
-        return (
-            await self.wallet_state_manager.get_unused_derivation_record(
+        # TODO revert after dropping support for old puzzle
+        record = await self.wallet_state_manager.get_unused_derivation_record(
                 self.wallet_info.id
             )
-        ).puzzle_hash
+        return puzzle_for_pk(bytes(record.pubkey)).get_tree_hash()
 
     def make_solution(
         self, primaries=None, min_time=0, me=None, consumed=None, fee=None
