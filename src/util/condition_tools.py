@@ -131,5 +131,5 @@ def conditions_for_solution(
         cost, r = run_program(puzzle_sexp, solution_sexp)
         error, result = parse_sexp_to_conditions(r)
         return error, result, cost
-    except EvalError:
+    except EvalError as inst:
         return Err.SEXP_ERROR, None, uint64(0)
