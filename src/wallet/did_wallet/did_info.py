@@ -12,5 +12,5 @@ from src.types.program import Program
 class DIDInfo(Streamable):
     my_did: Optional[bytes]
     backup_ids: List[bytes]
-    parent_info: List[Tuple[bytes32, Optional[CCParent]]]  # {coin.name(): CCParent}
+    parent_info: List[Tuple[bytes32, CCParent]]  # {coin.name(): CCParent}
     current_inner: Optional[Program]  # represents a Program as bytes

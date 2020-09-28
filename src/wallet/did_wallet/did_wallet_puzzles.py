@@ -36,7 +36,9 @@ def fullpuz_hash_for_inner_puzzle_hash(
 
 
 def get_pubkey_from_innerpuz(innerpuz: Program) -> G1Element:
-    pubkey_program, id_list = uncurry_innerpuz(innerpuz)
+    result = uncurry_innerpuz(innerpuz)
+    assert result is not None
+    pubkey_program = result[0]
     pubkey = G1Element.from_bytes(pubkey_program.as_atom())
     return pubkey
 
@@ -79,23 +81,12 @@ def get_innerpuzzle_from_puzzle(puzzle: Program) -> Program:
     return inner_puzzle
 
 
-def get_genesis_from_puzzle(puzzle: Program):
-    r = puzzle.uncurry()
-    if r is None:
-        return r
-    inner_f, args = r
-    if not is_did_core(inner_f):
-        return None
-    mod_hash, genesis_id, inner_puzzle = list(args.as_iter())
-    return genesis_id.as_atom()
-
-
-def get_recovery_message_puzzle(recovering_coin, newpuz):
+def create_recovery_message_puzzle(recovering_coin, newpuz):
     return DID_RECOVERY_MESSAGE_MOD.curry(recovering_coin, newpuz)
 
 
 def create_spend_for_message(parent_of_message, recovering_coin, newpuz):
-    puzzle = get_recovery_message_puzzle(recovering_coin, newpuz)
+    puzzle = create_recovery_message_puzzle(recovering_coin, newpuz)
     coin = Coin(parent_of_message, puzzle.get_tree_hash(), uint64(0))
     solution = Program.to([])
     coinsol = CoinSolution(coin, clvm.to_sexp_f([puzzle, solution]))

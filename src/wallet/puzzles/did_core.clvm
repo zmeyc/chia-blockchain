@@ -36,17 +36,6 @@
     )
   )
 
-  ; takes a lisp tree and returns the hash of it, but allows for escape character 97 so i precomputed hash value can be used
-  (defun sha256tree0 (TREE)
-    (if (l TREE)
-      (if (and (not (l (f TREE))) (= (f TREE) 97))
-          (f (r TREE))
-          (sha256 2 (sha256tree0 (f TREE)) (sha256tree0 (r TREE)))
-      )
-      (sha256 1 TREE)
-    )
-  )
-
   ; takes a lisp tree and returns the hash of it
   (defun sha256tree1 (TREE)
       (if (l TREE)
@@ -120,12 +109,9 @@
   (defun check_outputs_value (outputs_loop flag)
     (if outputs_loop
       (if (= (f (f outputs_loop)) (q 51))
-        (if (> (f (r (r (f outputs_loop)))) 0)
-          (if flag
-            (x "more than one output with value > 1")
-            (check_outputs_value (r outputs_loop) 1)
-          )
-          (check_outputs_value (r outputs_loop) flag)
+        (if (and flag (> (f (r (r (f outputs_loop)))) 0))
+          (x "more than one output with value > 1")
+          (check_outputs_value (r outputs_loop) 1)
         )
         (check_outputs_value (r outputs_loop) flag)
       )
