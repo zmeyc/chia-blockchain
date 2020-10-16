@@ -1,5 +1,6 @@
 from src.consensus.constants import constants
 from src.harvester import Harvester
+from src.harvester_api import HarvesterAPI
 from src.server.outbound_message import NodeType
 from src.types.peer_info import PeerInfo
 from src.util.config import load_config_cli
@@ -20,20 +21,22 @@ def service_kwargs_for_harvester(root_path=DEFAULT_ROOT_PATH):
         PeerInfo(config["farmer_peer"]["host"], config["farmer_peer"]["port"])
     ]
 
-    api = Harvester(root_path, constants)
+    harvester = Harvester(root_path, constants)
+    peer_api = HarvesterAPI(harvester)
 
     async def start_callback():
-        await api._start()
+        await harvester._start()
 
     def stop_callback():
-        api._close()
+        harvester._close()
 
     async def await_closed_callback():
-        await api._await_closed()
+        await harvester._await_closed()
 
     kwargs = dict(
         root_path=root_path,
-        api=api,
+        node=harvester,
+        peer_api=peer_api,
         node_type=NodeType.HARVESTER,
         advertised_port=config["port"],
         service_name=service_name,

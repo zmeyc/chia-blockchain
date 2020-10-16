@@ -1,5 +1,6 @@
 from multiprocessing import freeze_support
 
+from src.full_node.full_node import FullNode
 from src.rpc.full_node_rpc_api import FullNodeRpcApi
 from src.server.outbound_message import NodeType
 from src.server.start_service import run_service
@@ -24,26 +25,28 @@ def service_kwargs_for_full_node(root_path):
 
     config["database_path"] = config["simulator_database_path"]
 
-    api = FullNodeSimulator(
+    node = FullNode(
         config,
         root_path=root_path,
         consensus_constants=test_constants,
         name=service_name,
-        bt=BlockTools(),
     )
 
+    peer_api = FullNodeSimulator(node, bt=BlockTools())
+
     async def start_callback():
-        await api._start()
+        await node._start()
 
     def stop_callback():
-        api._close()
+        node._close()
 
     async def await_closed_callback():
-        await api._await_closed()
+        await node._await_closed()
 
     kwargs = dict(
         root_path=root_path,
-        api=api,
+        node=node,
+        peer_api=peer_api,
         node_type=NodeType.FULL_NODE,
         advertised_port=config["port"],
         service_name=service_name,

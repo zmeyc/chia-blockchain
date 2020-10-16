@@ -2,6 +2,7 @@ from multiprocessing import freeze_support
 
 from src.consensus.constants import constants
 from src.full_node.full_node import FullNode
+from src.full_node.full_node_api import FullNodeAPI
 from src.rpc.full_node_rpc_api import FullNodeRpcApi
 from src.server.outbound_message import NodeType
 from src.server.start_service import run_service
@@ -18,27 +19,29 @@ def service_kwargs_for_full_node(root_path):
     service_name = "full_node"
     config = load_config_cli(root_path, "config.yaml", service_name)
 
-    api = FullNode(config, root_path=root_path, consensus_constants=constants)
+    full_node = FullNode(config, root_path=root_path, consensus_constants=constants)
+    api = FullNodeAPI(full_node)
 
     async def start_callback():
         if config["enable_upnp"]:
             upnp_remap_port(config["port"])
-        await api._start()
+        await full_node._start()
 
     def stop_callback():
-        api._close()
+        full_node._close()
 
     async def await_closed_callback():
-        await api._await_closed()
+        await full_node._await_closed()
 
     kwargs = dict(
         root_path=root_path,
-        api=api,
+        node=api.full_node,
+        peer_api=api,
         node_type=NodeType.FULL_NODE,
         advertised_port=config["port"],
         service_name=service_name,
         server_listen_ports=[config["port"]],
-        on_connect_callback=api._on_connect,
+        on_connect_callback=full_node._on_connect,
         start_callback=start_callback,
         stop_callback=stop_callback,
         await_closed_callback=await_closed_callback,

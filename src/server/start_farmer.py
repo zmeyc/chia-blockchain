@@ -1,5 +1,6 @@
 from src.consensus.constants import constants
 from src.farmer import Farmer
+from src.farmer_api import FarmerAPI
 from src.server.outbound_message import NodeType
 from src.types.peer_info import PeerInfo
 from src.util.keychain import Keychain
@@ -24,18 +25,20 @@ def service_kwargs_for_farmer(root_path):
 
     # TOD: Remove once we have pool server
     config_pool = load_config_cli(root_path, "config.yaml", "pool")
-    api = Farmer(config, config_pool, keychain, constants)
+    farmer = Farmer(config, config_pool, keychain, constants)
+    peer_api = FarmerAPI(farmer)
 
     kwargs = dict(
         root_path=root_path,
-        api=api,
+        node=farmer,
+        peer_api=peer_api,
         node_type=NodeType.FARMER,
         advertised_port=config["port"],
         service_name=service_name,
         server_listen_ports=[config["port"]],
         connect_peers=connect_peers,
         auth_connect_peers=False,
-        on_connect_callback=api._on_connect,
+        on_connect_callback=farmer._on_connect,
     )
     if config["start_rpc_server"]:
         kwargs["rpc_info"] = (FarmerRpcApi, config["rpc_port"])

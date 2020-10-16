@@ -1,4 +1,5 @@
 from src.introducer import Introducer
+from src.introducer_api import IntroducerAPI
 from src.server.outbound_message import NodeType
 from src.util.config import load_config_cli
 from src.util.default_root import DEFAULT_ROOT_PATH
@@ -15,6 +16,7 @@ def service_kwargs_for_introducer(root_path=DEFAULT_ROOT_PATH):
     introducer = Introducer(
         config["max_peers_to_send"], config["recent_peer_threshold"]
     )
+    node__api = IntroducerAPI(introducer)
 
     async def start_callback():
         await introducer._start()
@@ -27,7 +29,8 @@ def service_kwargs_for_introducer(root_path=DEFAULT_ROOT_PATH):
 
     kwargs = dict(
         root_path=root_path,
-        api=introducer,
+        node=introducer,
+        peer_api=node__api,
         node_type=NodeType.INTRODUCER,
         advertised_port=config["port"],
         service_name=service_name,

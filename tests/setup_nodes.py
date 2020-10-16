@@ -4,11 +4,17 @@ import signal
 from secrets import token_bytes
 from typing import Dict, Tuple, List, Optional
 from src.consensus.constants import ConsensusConstants
+from src.farmer_api import FarmerAPI
 from src.full_node.full_node import FullNode
-from src.server.connection import NodeType
+from src.full_node.full_node_api import FullNodeAPI
+from src.harvester_api import HarvesterAPI
+from src.introducer_api import IntroducerAPI
+from src.server.outbound_message import NodeType
 from src.server.server import ChiaServer
 from src.simulator.full_node_simulator import FullNodeSimulator
+from src.timelord_api import TimelordAPI
 from src.timelord_launcher import spawn_process, kill_processes
+from src.types.peer_info import PeerInfo
 from src.util.keychain import Keychain, bytes_to_mnemonic
 from src.wallet.wallet_node import WalletNode
 from src.util.config import load_config
@@ -16,11 +22,11 @@ from src.harvester import Harvester
 from src.farmer import Farmer
 from src.introducer import Introducer
 from src.timelord import Timelord
-from src.server.connection import PeerInfo
 from src.util.ints import uint16, uint32
 from src.server.start_service import Service
 from src.util.make_test_constants import make_test_constants_with_genesis
-from tests.time_out_assert import time_out_assert
+from src.wallet.wallet_node_api import WalletNodeAPI
+from tests.time_out_assert import time_out_assert, time_out_assert_custom_interval
 from src.util.chech32 import encode_puzzle_hash
 
 
@@ -74,48 +80,52 @@ async def setup_full_node(
     config["database_path"] = db_name
     config["send_uncompact_interval"] = send_uncompact_interval
     config["peer_connect_interval"] = 3
-    config["introducer_peer"]["host"] = "::1"
+    config["introducer_peer"]["host"] = "localhost"
     if introducer_port is not None:
         config["introducer_peer"]["port"] = introducer_port
 
+    node: FullNode = FullNode(
+        config=config,
+        root_path=bt.root_path,
+        consensus_constants=consensus_constants,
+        name=f"full_node_{port}",
+    )
+
     if not simulator:
-        api: FullNode = FullNode(
+        peer_api = FullNodeAPI(node)
+    else:
+        node: FullNode = FullNode(
             config=config,
             root_path=bt.root_path,
             consensus_constants=consensus_constants,
             name=f"full_node_{port}",
         )
-    else:
-        api = FullNodeSimulator(
-            config=config,
-            root_path=bt.root_path,
-            consensus_constants=consensus_constants,
-            name=f"full_node_sim_{port}",
-            bt=bt,
-        )
+        peer_api = FullNodeSimulator(node, bt)
+
 
     started = asyncio.Event()
 
     async def start_callback():
-        await api._start()
+        await node._start()
         nonlocal started
         started.set()
 
     def stop_callback():
-        api._close()
+        node._close()
 
     async def await_closed_callback():
-        await api._await_closed()
+        await node._await_closed()
 
     service = Service(
         root_path=bt.root_path,
-        api=api,
+        node=node,
+        peer_api=peer_api,
         node_type=NodeType.FULL_NODE,
         advertised_port=port,
         service_name="full_node",
         server_listen_ports=[port],
         auth_connect_peers=False,
-        on_connect_callback=api._on_connect,
+        on_connect_callback=node._on_connect,
         start_callback=start_callback,
         stop_callback=stop_callback,
         await_closed_callback=await_closed_callback,
@@ -125,7 +135,7 @@ async def setup_full_node(
     run_task = asyncio.create_task(service.run())
     await started.wait()
 
-    yield api, api.server
+    yield peer_api
 
     service.stop()
     await run_task
@@ -159,14 +169,16 @@ async def setup_wallet_node(
     config["database_path"] = str(db_name)
     config["testing"] = True
 
-    api = WalletNode(
+    node = WalletNode(
         config,
         keychain,
         bt.root_path,
         consensus_constants=consensus_constants,
         name="wallet1",
     )
-    config["introducer_peer"]["host"] = "::1"
+    peer_api = WalletNodeAPI(node)
+
+    config["introducer_peer"]["host"] = "localhost"
     if introducer_port is not None:
         config["introducer_peer"]["port"] = introducer_port
         config["peer_connect_interval"] = 10
@@ -178,26 +190,27 @@ async def setup_wallet_node(
     started = asyncio.Event()
 
     async def start_callback():
-        await api._start(new_wallet=True)
+        await node._start(new_wallet=True)
         nonlocal started
         started.set()
 
     def stop_callback():
-        api._close()
+        node._close()
 
     async def await_closed_callback():
-        await api._await_closed()
+        await node._await_closed()
 
     service = Service(
         root_path=bt.root_path,
-        api=api,
+        node=node,
+        peer_api=peer_api,
         node_type=NodeType.WALLET,
         advertised_port=port,
         service_name="wallet",
         server_listen_ports=[port],
         connect_peers=connect_peers,
         auth_connect_peers=False,
-        on_connect_callback=api._on_connect,
+        on_connect_callback=node._on_connect,
         start_callback=start_callback,
         stop_callback=stop_callback,
         await_closed_callback=await_closed_callback,
@@ -207,7 +220,7 @@ async def setup_wallet_node(
     run_task = asyncio.create_task(service.run())
     await started.wait()
 
-    yield api, api.server
+    yield node, node.server
 
     service.stop()
     await run_task
@@ -217,24 +230,25 @@ async def setup_wallet_node(
 
 
 async def setup_harvester(port, farmer_port, consensus_constants: ConsensusConstants):
-    api = Harvester(bt.root_path, consensus_constants)
-
+    harvester = Harvester(bt.root_path, consensus_constants)
+    peer_api = HarvesterAPI(harvester)
     started = asyncio.Event()
 
     async def start_callback():
-        await api._start()
+        await harvester._start()
         nonlocal started
         started.set()
 
     def stop_callback():
-        api._close()
+        harvester._close()
 
     async def await_closed_callback():
-        await api._await_closed()
+        await harvester._await_closed()
 
     service = Service(
         root_path=bt.root_path,
-        api=api,
+        node=harvester,
+        peer_api=peer_api,
         node_type=NodeType.HARVESTER,
         advertised_port=port,
         service_name="harvester",
@@ -250,7 +264,7 @@ async def setup_harvester(port, farmer_port, consensus_constants: ConsensusConst
     run_task = asyncio.create_task(service.run())
     await started.wait()
 
-    yield api, api.server
+    yield harvester, harvester.server
 
     service.stop()
     await run_task
@@ -267,12 +281,14 @@ async def setup_farmer(
     config["xch_target_address"] = encode_puzzle_hash(bt.farmer_ph)
     config["pool_public_keys"] = [bytes(pk).hex() for pk in bt.pool_pubkeys]
     config_pool["xch_target_address"] = encode_puzzle_hash(bt.pool_ph)
+
     if full_node_port:
         connect_peers = [PeerInfo(self_hostname, full_node_port)]
     else:
         connect_peers = []
 
-    api = Farmer(config, config_pool, bt.keychain, consensus_constants)
+    farmer = Farmer(config, config_pool, bt.keychain, consensus_constants)
+    peer_api = FarmerAPI(farmer)
 
     started = asyncio.Event()
 
@@ -282,12 +298,13 @@ async def setup_farmer(
 
     service = Service(
         root_path=bt.root_path,
-        api=api,
+        node=farmer,
+        peer_api=peer_api,
         node_type=NodeType.FARMER,
         advertised_port=port,
         service_name="farmer",
         server_listen_ports=[port],
-        on_connect_callback=api._on_connect,
+        on_connect_callback=farmer._on_connect,
         connect_peers=connect_peers,
         auth_connect_peers=False,
         start_callback=start_callback,
@@ -297,7 +314,7 @@ async def setup_farmer(
     run_task = asyncio.create_task(service.run())
     await started.wait()
 
-    yield api, api.server
+    yield farmer, farmer.server
 
     service.stop()
     await run_task
@@ -305,24 +322,25 @@ async def setup_farmer(
 
 async def setup_introducer(port):
     config = load_config(bt.root_path, "config.yaml", "introducer")
-    api = Introducer(config["max_peers_to_send"], config["recent_peer_threshold"])
-
+    introducer = Introducer(config["max_peers_to_send"], config["recent_peer_threshold"])
+    peer_api = IntroducerAPI(introducer)
     started = asyncio.Event()
 
     async def start_callback():
-        await api._start()
+        await introducer._start()
         nonlocal started
         started.set()
 
     def stop_callback():
-        api._close()
+        introducer._close()
 
     async def await_closed_callback():
-        await api._await_closed()
+        await introducer._await_closed()
 
     service = Service(
         root_path=bt.root_path,
-        api=api,
+        node=introducer,
+        peer_api=peer_api,
         node_type=NodeType.INTRODUCER,
         advertised_port=port,
         service_name="introducer",
@@ -337,7 +355,7 @@ async def setup_introducer(port):
     run_task = asyncio.create_task(service.run())
     await started.wait()
 
-    yield api, api.server
+    yield introducer, introducer.server
 
     service.stop()
     await run_task
@@ -365,24 +383,26 @@ async def setup_timelord(
     if sanitizer:
         config["vdf_server"]["port"] = 7999
 
-    api = Timelord(config, consensus_constants.DISCRIMINANT_SIZE_BITS)
+    timelord = Timelord(config, consensus_constants.DISCRIMINANT_SIZE_BITS)
+    peer_api = TimelordAPI(timelord)
 
     started = asyncio.Event()
 
     async def start_callback():
-        await api._start()
+        await timelord._start()
         nonlocal started
         started.set()
 
     def stop_callback():
-        api._close()
+        timelord._close()
 
     async def await_closed_callback():
-        await api._await_closed()
+        await timelord._await_closed()
 
     service = Service(
         root_path=bt.root_path,
-        api=api,
+        node=timelord,
+        peer_api=peer_api,
         node_type=NodeType.TIMELORD,
         advertised_port=port,
         service_name="timelord",
@@ -398,7 +418,7 @@ async def setup_timelord(
     run_task = asyncio.create_task(service.run())
     await started.wait()
 
-    yield api, api.server
+    yield timelord, timelord.server
 
     service.stop()
     await run_task
@@ -452,7 +472,7 @@ async def setup_simulators_and_wallets(
     dic: Dict,
     starting_height=None,
 ):
-    simulators: List[Tuple[FullNode, ChiaServer]] = []
+    simulators: List[Tuple[FullNode, ChiaServer, FullNodeAPI]] = []
     wallets = []
     node_iters = []
 
@@ -518,9 +538,10 @@ async def setup_full_system(consensus_constants: ConsensusConstants):
     farmer, farmer_server = await node_iters[2].__anext__()
 
     async def num_connections():
-        return len(harvester.global_connections.get_connections())
+        count = len(harvester.server.global_connections.items())
+        return count
 
-    await time_out_assert(10, num_connections, 1)
+    await time_out_assert_custom_interval(10, 3, num_connections, 1)
 
     vdf = await node_iters[3].__anext__()
     timelord, timelord_server = await node_iters[4].__anext__()

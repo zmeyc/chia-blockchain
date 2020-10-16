@@ -12,13 +12,12 @@ except ImportError:
     uvloop = None
 
 from src.server.outbound_message import NodeType
-from src.server.server import ChiaServer, start_server
+from src.server.server import ChiaServer
 from src.types.peer_info import PeerInfo
 from src.util.logging import initialize_logging
 from src.util.config import load_config, load_config_cli
 from src.util.setproctitle import setproctitle
 from src.rpc.rpc_server import start_rpc_server
-from src.server.connection import OnConnectFunc
 
 from .reconnect_task import start_reconnect_task
 
@@ -35,14 +34,15 @@ class Service:
     def __init__(
         self,
         root_path,
-        api: Any,
+        node: Any,
+        peer_api: Any,
         node_type: NodeType,
         advertised_port: int,
         service_name: str,
         server_listen_ports: List[int] = [],
         connect_peers: List[PeerInfo] = [],
         auth_connect_peers: bool = True,
-        on_connect_callback: Optional[OnConnectFunc] = None,
+        on_connect_callback: Optional[Callable] = None,
         rpc_info: Optional[Tuple[type, int]] = None,
         start_callback: Optional[Callable] = None,
         stop_callback: Optional[Callable] = None,
@@ -73,7 +73,7 @@ class Service:
 
         self._server = ChiaServer(
             advertised_port,
-            api,
+            peer_api,
             node_type,
             ping_interval,
             network_id,
@@ -82,7 +82,7 @@ class Service:
             name=f"{service_name}_server",
         )
         for _ in ["set_server", "_set_server"]:
-            f = getattr(api, _, None)
+            f = getattr(node, _, None)
             if f:
                 f(self._server)
 
@@ -90,7 +90,7 @@ class Service:
         self._auth_connect_peers = auth_connect_peers
         self._server_listen_ports = server_listen_ports
 
-        self._api = api
+        self._node = node
         self._task = None
         self._is_stopping = False
         self._stopped_by_rpc = False
@@ -100,7 +100,7 @@ class Service:
         self._stop_callback = stop_callback
         self._await_closed_callback = await_closed_callback
         self._advertised_port = advertised_port
-        self._server_sockets: List = []
+        self._reconnect_tasks: List[asyncio.Task] = []
 
     def start(self):
         if self._task is not None:
@@ -117,7 +117,7 @@ class Service:
 
                 self._rpc_task = asyncio.create_task(
                     start_rpc_server(
-                        rpc_api(self._api),
+                        rpc_api(self._node),
                         self.self_hostname,
                         self.daemon_port,
                         rpc_port,
@@ -131,10 +131,8 @@ class Service:
                 )
                 for _ in self._connect_peers
             ]
-            self._server_sockets = [
-                await start_server(self._server, self._on_connect_callback)
-                for _ in self._server_listen_ports
-            ]
+
+            await self._server.start_server(self._on_connect_callback)
 
             signal.signal(signal.SIGINT, global_signal_handler)
             signal.signal(signal.SIGTERM, global_signal_handler)
@@ -148,7 +146,7 @@ class Service:
         self.start()
         await self._task
         while not stopped_by_signal and not self._is_stopping:
-            await asyncio.sleep(1)
+            await asyncio.sleep(4)
 
         self.stop()
         await self.wait_closed()
@@ -157,15 +155,12 @@ class Service:
     def stop(self):
         if not self._is_stopping:
             self._is_stopping = True
-            self._log.info("Closing server sockets")
-            for _ in self._server_sockets:
-                _.close()
             self._log.info("Cancelling reconnect task")
             for _ in self._reconnect_tasks:
                 _.cancel()
             self._log.info("Closing connections")
             self._server.close_all()
-            self._api._shut_down = True
+            self._node._shut_down = True
 
             self._log.info("Calling service stop callback")
             if self._stop_callback:
@@ -180,10 +175,6 @@ class Service:
                 self._rpc_close_task = asyncio.create_task(close_rpc_server())
 
     async def wait_closed(self):
-        self._log.info("Waiting for socket to be closed (if opened)")
-        for _ in self._server_sockets:
-            await _.wait_closed()
-
         self._log.info("Waiting for ChiaServer to be closed")
         await self._server.await_closed()
 

@@ -41,7 +41,6 @@ class Timelord:
         self.pending_iters: Dict = {}
         self.submitted_iters: Dict = {}
         self.done_discriminants: List[bytes32] = []
-        self.proofs_to_write: List[OutboundMessage] = []
         self.seen_discriminants: List[bytes32] = []
         self.proof_count: Dict = {}
         self.avg_ips: Dict = {}
@@ -57,6 +56,7 @@ class Timelord:
         self.sanitizer_mode = self.config["sanitizer_mode"]
         self.last_time_seen_discriminant: Dict = {}
         self.max_known_weights: List[uint128] = []
+        self.log = log
 
     def _set_server(self, server: ChiaServer):
         self.server = server
@@ -276,6 +276,7 @@ class Timelord:
             log.warning(f"{type(e)} {e}")
             async with self.lock:
                 if challenge_hash not in self.done_discriminants:
+                    breakpoint()
                     self.done_discriminants.append(challenge_hash)
                 if self.sanitizer_mode:
                     if challenge_hash in self.pending_iters:
@@ -390,13 +391,8 @@ class Timelord:
                 await self._update_avg_ips(challenge_hash, iterations_needed, ip)
 
                 async with self.lock:
-                    self.proofs_to_write.append(
-                        OutboundMessage(
-                            NodeType.FULL_NODE,
-                            Message("proof_of_time_finished", response),
-                            Delivery.BROADCAST,
-                        )
-                    )
+                    msg = Message("proof_of_time_finished", response)
+                    await self.server.send_to_all([msg], NodeType.FULL_NODE)
 
                 if not self.sanitizer_mode:
                     await self._update_proofs_count(challenge_weight)
@@ -494,10 +490,6 @@ class Timelord:
                                                 worst_weight_active
                                             )
 
-                if len(self.proofs_to_write) > 0:
-                    for msg in self.proofs_to_write:
-                        self.server.push_message(msg)
-                    self.proofs_to_write.clear()
             await asyncio.sleep(0.5)
 
         async with self.lock:
@@ -529,101 +521,5 @@ class Timelord:
                         asyncio.create_task(
                             self._do_process_communication(disc, weight, ip, sr, sw)
                         )
-                if len(self.proofs_to_write) > 0:
-                    for msg in self.proofs_to_write:
-                        self.server.push_message(msg)
-                    self.proofs_to_write.clear()
+
             await asyncio.sleep(3)
-
-    @api_request
-    async def challenge_start(self, challenge_start: timelord_protocol.ChallengeStart):
-        """
-        The full node notifies the timelord node that a new challenge is active, and work
-        should be started on it. We add the challenge into the queue if it's worth it to have.
-        """
-        async with self.lock:
-            if not self.sanitizer_mode:
-                if challenge_start.challenge_hash in self.seen_discriminants:
-                    log.info(
-                        f"Have already seen this challenge hash {challenge_start.challenge_hash}. Ignoring."
-                    )
-                    return
-                if challenge_start.weight <= self.best_weight_three_proofs:
-                    log.info(
-                        "Not starting challenge, already three proofs at that weight"
-                    )
-                    return
-                self.seen_discriminants.append(challenge_start.challenge_hash)
-                self.discriminant_queue.append(
-                    (challenge_start.challenge_hash, challenge_start.weight)
-                )
-                log.info("Appended to discriminant queue.")
-            else:
-                disc_dict = dict(self.discriminant_queue)
-                if challenge_start.challenge_hash in disc_dict:
-                    log.info("Challenge already in discriminant queue. Ignoring.")
-                    return
-                if challenge_start.challenge_hash in self.active_discriminants:
-                    log.info("Challenge currently running. Ignoring.")
-                    return
-
-                self.discriminant_queue.append(
-                    (challenge_start.challenge_hash, challenge_start.weight)
-                )
-                if challenge_start.weight not in self.max_known_weights:
-                    self.max_known_weights.append(challenge_start.weight)
-                    self.max_known_weights.sort()
-                    if len(self.max_known_weights) > 5:
-                        self.max_known_weights = self.max_known_weights[-5:]
-
-    @api_request
-    async def proof_of_space_info(
-        self, proof_of_space_info: timelord_protocol.ProofOfSpaceInfo
-    ):
-        """
-        Notification from full node about a new proof of space for a challenge. If we already
-        have a process for this challenge, we should communicate to the process to tell it how
-        many iterations to run for.
-        """
-        async with self.lock:
-            if not self.sanitizer_mode:
-                log.info(
-                    f"proof_of_space_info {proof_of_space_info.challenge_hash} {proof_of_space_info.iterations_needed}"
-                )
-                if proof_of_space_info.challenge_hash in self.done_discriminants:
-                    log.info(
-                        f"proof_of_space_info {proof_of_space_info.challenge_hash} already done, returning"
-                    )
-                    return
-            else:
-                disc_dict = dict(self.discriminant_queue)
-                if proof_of_space_info.challenge_hash in disc_dict:
-                    challenge_weight = disc_dict[proof_of_space_info.challenge_hash]
-                    if challenge_weight >= min(self.max_known_weights):
-                        log.info(
-                            "Not storing iter, waiting for more block confirmations."
-                        )
-                        return
-                else:
-                    log.info("Not storing iter, challenge inactive.")
-                    return
-
-            if proof_of_space_info.challenge_hash not in self.pending_iters:
-                self.pending_iters[proof_of_space_info.challenge_hash] = []
-            if proof_of_space_info.challenge_hash not in self.submitted_iters:
-                self.submitted_iters[proof_of_space_info.challenge_hash] = []
-
-            if (
-                proof_of_space_info.iterations_needed
-                not in self.pending_iters[proof_of_space_info.challenge_hash]
-                and proof_of_space_info.iterations_needed
-                not in self.submitted_iters[proof_of_space_info.challenge_hash]
-            ):
-                log.info(
-                    f"proof_of_space_info {proof_of_space_info.challenge_hash} adding "
-                    f"{proof_of_space_info.iterations_needed} to "
-                    f"{self.pending_iters[proof_of_space_info.challenge_hash]}"
-                )
-                self.pending_iters[proof_of_space_info.challenge_hash].append(
-                    proof_of_space_info.iterations_needed
-                )
