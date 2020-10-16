@@ -10,8 +10,8 @@ from blspy import G1Element, G2Element, AugSchemeMPL
 from chiapos import DiskProver
 from src.consensus.constants import ConsensusConstants
 from src.protocols import harvester_protocol
-from src.server.connection import PeerConnections
 from src.server.outbound_message import Delivery, Message, NodeType, OutboundMessage
+from src.server.ws_connection import WSChiaConnection
 from src.types.proof_of_space import ProofOfSpace
 from src.util.api_decorators import api_request
 from src.util.ints import uint8
@@ -49,7 +49,6 @@ class Harvester:
         self.no_key_filenames = set()
 
         self._is_shutdown = False
-        self.global_connections: Optional[PeerConnections] = None
         self.farmer_public_keys = []
         self.pool_public_keys = []
         self.match_str = None
@@ -58,6 +57,7 @@ class Harvester:
         self.server = None
         self.constants = constants
         self.cached_challenges = []
+        self.log = log
 
     async def _start(self):
         self._refresh_lock = asyncio.Lock()
@@ -71,8 +71,6 @@ class Harvester:
 
     def _set_state_changed_callback(self, callback: Callable):
         self.state_changed_callback = callback
-        if self.global_connections is not None:
-            self.global_connections.set_state_changed_callback(callback)
 
     def _state_changed(self, change: str):
         if self.state_changed_callback is not None:
@@ -148,45 +146,16 @@ class Harvester:
         remove_plot_directory(str_path, self.root_path)
         return True
 
-    def _set_global_connections(self, global_connections: Optional[PeerConnections]):
-        self.global_connections = global_connections
-
     def _set_server(self, server):
         self.server = server
 
-    @api_request
-    async def harvester_handshake(
-        self, harvester_handshake: harvester_protocol.HarvesterHandshake
-    ):
-        """
-        Handshake between the harvester and farmer. The harvester receives the pool public keys,
-        as well as the farmer pks, which must be put into the plots, before the plotting process begins.
-        We cannot use any plots which have different keys in them.
-        """
-        self.farmer_public_keys = harvester_handshake.farmer_public_keys
-        self.pool_public_keys = harvester_handshake.pool_public_keys
-
-        await self._refresh_plots()
-
-        if len(self.provers) == 0:
-            log.warning(
-                "Not farming any plots on this harvester. Check your configuration."
-            )
-            return
-
-        for new_challenge in self.cached_challenges:
-            async for msg in self.new_challenge(new_challenge):
-                yield msg
-        self.cached_challenges = []
-        self._state_changed("plots")
-
-    @api_request
-    async def new_challenge(self, new_challenge: harvester_protocol.NewChallenge):
+    async def _new_challenge(self, new_challenge: harvester_protocol.NewChallenge):
         """
         The harvester receives a new challenge from the farmer, and looks up the quality string
         for any proofs of space that are are found in the plots. If proofs are found, a
         ChallengeResponse message is sent for each of the proofs found.
         """
+
         if len(self.pool_public_keys) == 0 or len(self.farmer_public_keys) == 0:
             self.cached_challenges = self.cached_challenges[:5]
             self.cached_challenges.insert(0, new_challenge)
@@ -257,112 +226,10 @@ class Harvester:
         for sublist_awaitable in asyncio.as_completed(awaitables):
             for response in await sublist_awaitable:
                 total_proofs_found += 1
-                yield OutboundMessage(
-                    NodeType.FARMER,
-                    Message("challenge_response", response),
-                    Delivery.RESPOND,
-                )
+                msg = Message("challenge_response", response)
+                yield msg
         log.info(
             f"{len(awaitables)} plots were eligible for farming {new_challenge.challenge_hash.hex()[:10]}..."
             f" Found {total_proofs_found} proofs. Time: {time.time() - start}. "
             f"Total {len(self.provers)} plots"
-        )
-
-    @api_request
-    async def request_proof_of_space(
-        self, request: harvester_protocol.RequestProofOfSpace
-    ):
-        """
-        The farmer requests a proof of space, for one of the plots.
-        We look up the correct plot based on the plot id and response number, lookup the proof,
-        and return it.
-        """
-        response: Optional[harvester_protocol.RespondProofOfSpace] = None
-        challenge_hash = request.challenge_hash
-        filename = Path(request.plot_id).resolve()
-        index = request.response_number
-        proof_xs: bytes
-        plot_info = self.provers[filename]
-
-        try:
-            try:
-                proof_xs = plot_info.prover.get_full_proof(challenge_hash, index)
-            except RuntimeError:
-                prover = DiskProver(str(filename))
-                self.provers[filename] = PlotInfo(
-                    prover,
-                    plot_info.pool_public_key,
-                    plot_info.farmer_public_key,
-                    plot_info.plot_public_key,
-                    plot_info.local_sk,
-                    plot_info.file_size,
-                    plot_info.time_modified,
-                )
-                proof_xs = self.provers[filename].prover.get_full_proof(
-                    challenge_hash, index
-                )
-        except KeyError:
-            log.warning(f"KeyError plot {filename} does not exist.")
-
-        plot_info = self.provers[filename]
-        plot_public_key = ProofOfSpace.generate_plot_public_key(
-            plot_info.local_sk.get_g1(), plot_info.farmer_public_key
-        )
-
-        proof_of_space: ProofOfSpace = ProofOfSpace(
-            challenge_hash,
-            plot_info.pool_public_key,
-            plot_public_key,
-            uint8(self.provers[filename].prover.get_size()),
-            proof_xs,
-        )
-        response = harvester_protocol.RespondProofOfSpace(
-            request.plot_id,
-            request.response_number,
-            proof_of_space,
-        )
-        if response:
-            yield OutboundMessage(
-                NodeType.FARMER,
-                Message("respond_proof_of_space", response),
-                Delivery.RESPOND,
-            )
-
-    @api_request
-    async def request_signature(self, request: harvester_protocol.RequestSignature):
-        """
-        The farmer requests a signature on the header hash, for one of the proofs that we found.
-        A signature is created on the header hash using the harvester private key. This can also
-        be used for pooling.
-        """
-        plot_info = None
-        try:
-            plot_info = self.provers[Path(request.plot_id).resolve()]
-        except KeyError:
-            log.warning(f"KeyError plot {request.plot_id} does not exist.")
-            return
-
-        local_sk = plot_info.local_sk
-        agg_pk = ProofOfSpace.generate_plot_public_key(
-            local_sk.get_g1(), plot_info.farmer_public_key
-        )
-
-        # This is only a partial signature. When combined with the farmer's half, it will
-        # form a complete PrependSignature.
-        signature: G2Element = AugSchemeMPL.sign(local_sk, request.message, agg_pk)
-
-        response: harvester_protocol.RespondSignature = (
-            harvester_protocol.RespondSignature(
-                request.plot_id,
-                request.message,
-                local_sk.get_g1(),
-                plot_info.farmer_public_key,
-                signature,
-            )
-        )
-
-        yield OutboundMessage(
-            NodeType.FARMER,
-            Message("respond_signature", response),
-            Delivery.RESPOND,
         )
