@@ -116,9 +116,9 @@ class FullNodeDiscovery:
             except Exception as e:
                 self.log.error(f"Exception in process message: {e}")
 
-    async def _num_needed_peers(self) -> int:
+    def _num_needed_peers(self) -> int:
         diff = self.target_outbound_count
-        outgoing = await self.server.get_outgoing_connections()
+        outgoing = self.server.get_outgoing_connections()
         diff -= len(outgoing)
         return diff if diff >= 0 else 0
 
@@ -137,22 +137,25 @@ class FullNodeDiscovery:
         )
 
     async def _introducer_client(self):
-        async def on_connect() -> OutboundMessageGenerator:
+        async def on_connect(peer: WSChiaConnection):
             msg = Message("request_peers", introducer_protocol.RequestPeers())
-            yield OutboundMessage(NodeType.INTRODUCER, msg, Delivery.RESPOND)
+            await peer.send_message(msg)
 
         await self.server.start_client(self.introducer_info, on_connect)
         # If we are still connected to introducer, disconnect
-        for id, connection in self.server.global_connections.items():
-            if connection.connection_type == NodeType.INTRODUCER:
-                await connection.close()
+
+        async def disconnect_after_sleep():
+            await asyncio.sleep(10)
+            for id, connection in self.server.global_connections.items():
+                if connection.connection_type == NodeType.INTRODUCER:
+                    await connection.close()
+
+        asyncio.create_task(disconnect_after_sleep())
 
     async def _connect_to_peers(self, random):
         next_feeler = self._poisson_next_send(time.time() * 1000 * 1000, 240, random)
         empty_tables = False
-        local_peerinfo: Optional[
-            PeerInfo
-        ] = await self.global_connections.get_local_peerinfo()
+        local_peerinfo: Optional[PeerInfo] = await self.server.get_peer_info()
         last_timestamp_local_info: uint64 = uint64(int(time.time()))
         while not self.is_closed:
             # We don't know any address, connect to the introducer to get some.
@@ -165,8 +168,9 @@ class FullNodeDiscovery:
 
             # Only connect out to one peer per network group (/16 for IPv4).
             groups = []
-            connected = self.global_connections.get_full_node_peerinfos()
-            for conn in self.global_connections.get_outbound_connections():
+            full_node_connected = self.server.get_full_node_connections()
+            connected = [c.get_peer_info() for c in full_node_connected]
+            for conn in full_node_connected:
                 peer = conn.get_peer_info()
                 group = peer.get_group()
                 if group not in groups:
@@ -209,7 +213,6 @@ class FullNodeDiscovery:
                 await asyncio.sleep(sleep_interval)
                 tries += 1
                 if tries > max_tries:
-                    addr = None
                     empty_tables = True
                     break
                 info: Optional[
@@ -225,9 +228,14 @@ class FullNodeDiscovery:
                     break
                 # Require outbound connections, other than feelers, to be to distinct network groups.
                 addr = info.peer_info
+
                 if not is_feeler and addr.get_group() in groups:
                     addr = None
                     continue
+
+                connected = [
+                    c.get_peer_info() for c in self.server.get_full_node_connections()
+                ]
                 if addr in connected:
                     addr = None
                     continue
@@ -238,7 +246,7 @@ class FullNodeDiscovery:
                     time.time() - last_timestamp_local_info > 1800
                     or local_peerinfo is None
                 ):
-                    local_peerinfo = await self.global_connections.get_local_peerinfo()
+                    local_peerinfo = await self.server.get_peer_info()
                     last_timestamp_local_info = uint64(int(time.time()))
                 if local_peerinfo is not None and addr == local_peerinfo:
                     continue
@@ -251,11 +259,12 @@ class FullNodeDiscovery:
             initiate_connection = (
                 self._num_needed_peers() > 0 or has_collision or is_feeler
             )
+            self.log.info(f"About to try {addr}, {initiate_connection}")
+
             if addr is not None and initiate_connection:
+                self.log.info("About to try to connect")
                 asyncio.create_task(
-                    self.server.start_client(
-                        addr, None, None, disconnect_after_handshake
-                    )
+                    self.server.start_client(addr, is_feeler=disconnect_after_handshake)
                 )
             sleep_interval = 5 + len(groups) * 5
             sleep_interval = min(sleep_interval, self.peer_connect_interval)
@@ -347,7 +356,7 @@ class FullNodePeers(FullNodeDiscovery):
                     for neighbour in list(self.neighbour_known_peers.keys()):
                         self.neighbour_known_peers[neighbour].clear()
                 # Self advertise every 24 hours.
-                peer = PeerInfo(self.server._host, self.server._port)
+                peer = await self.server.get_peer_info()
                 if peer is None:
                     continue
                 timestamped_peer = [
