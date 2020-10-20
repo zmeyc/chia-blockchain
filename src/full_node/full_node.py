@@ -23,6 +23,7 @@ from src.protocols import (
     timelord_protocol,
     wallet_protocol,
 )
+from src.server.node_discovery import FullNodePeers
 from src.server.outbound_message import Delivery, Message, NodeType, OutboundMessage
 from src.server.server import ChiaServer
 from src.server.ws_connection import WSChiaConnection
@@ -99,23 +100,7 @@ class FullNode:
         self.mempool_manager = MempoolManager(self.coin_store, self.constants)
         await self.mempool_manager.new_tips(await self.blockchain.get_full_tips())
         self.state_changed_callback = None
-        try:
-            """
-            self.full_node_peers = FullNodePeers(
-                self.server,
-                self.root_path,
-                self.config["target_peer_count"]
-                - self.config["target_outbound_peer_count"],
-                self.config["target_outbound_peer_count"],
-                self.config["peer_db_path"],
-                self.config["introducer_peer"],
-                self.config["peer_connect_interval"],
-                self.log,
-            )
-            await self.full_node_peers.start()
-            """
-        except Exception as e:
-            self.log.error(f"Exception in peer discovery: {e}")
+
         uncompact_interval = self.config["send_uncompact_interval"]
         if uncompact_interval > 0:
             self.broadcast_uncompact_task = asyncio.create_task(
@@ -132,6 +117,21 @@ class FullNode:
 
     def _set_server(self, server: ChiaServer):
         self.server = server
+        try:
+            self.full_node_peers = FullNodePeers(
+                self.server,
+                self.root_path,
+                self.config["target_peer_count"]
+                - self.config["target_outbound_peer_count"],
+                self.config["target_outbound_peer_count"],
+                self.config["peer_db_path"],
+                self.config["introducer_peer"],
+                self.config["peer_connect_interval"],
+                self.log,
+            )
+            asyncio.create_task(self.full_node_peers.start())
+        except Exception as e:
+            self.log.error(f"Exception in peer discovery: {e}")
 
     def _state_changed(self, change: str):
         if self.state_changed_callback is not None:
@@ -277,7 +277,7 @@ class FullNode:
     def _close(self):
         self._shut_down = True
         self.blockchain.shut_down()
-        # asyncio.create_task(self.full_node_peers.close())
+        asyncio.create_task(self.full_node_peers.close())
 
     async def _await_closed(self):
         await self.connection.close()
