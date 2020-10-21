@@ -294,10 +294,10 @@ async def setup_two_nodes(consensus_constants: ConsensusConstants):
         ),
     ]
 
-    fn1, s1 = await node_iters[0].__anext__()
-    fn2, s2 = await node_iters[1].__anext__()
+    fn1 = await node_iters[0].__anext__()
+    fn2 = await node_iters[1].__anext__()
 
-    yield (fn1, fn2, s1, s2)
+    yield (fn1, fn2, fn1.full_node.server, fn2.full_node.server)
 
     await _teardown_nodes(node_iters)
 
