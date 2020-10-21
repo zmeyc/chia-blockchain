@@ -507,9 +507,6 @@ class WalletNode:
                         ) or (
                             query_heights[batch_start_index]
                         ) > highest_height_requested:
-                            self.log.info(
-                                f"Requesting sync header {query_heights[batch_start_index]}"
-                            )
                             if (
                                 query_heights[batch_start_index]
                                 > highest_height_requested
@@ -522,10 +519,14 @@ class WalletNode:
                                 uint32(query_heights[batch_start_index]),
                                 self.header_hashes[query_heights[batch_start_index]],
                             )
-
+                            self.log.info(
+                                f"Requesting sync header {query_heights[batch_start_index]}"
+                            )
                             # TODO send to random
-                            msg = Message("request_header", request_header)
-                            await self.server.send_to_all([msg], NodeType.FULL_NODE)
+                            await self.server.send_to_all(
+                                [Message("request_header", request_header)],
+                                NodeType.FULL_NODE,
+                            )
                     if request_made:
                         last_request_time = time.time()
                         request_made = False

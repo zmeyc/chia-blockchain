@@ -594,7 +594,6 @@ class FullNode:
                     respond_block.block
                 )
                 for req in resp:
-                    breakpoint()
                     type = req.peer_type
                     node_id = req.specific_peer_node_id
                     message = req.message
