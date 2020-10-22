@@ -86,10 +86,11 @@ class TestFullNodeProtocol:
     @pytest.mark.asyncio
     async def test_request_peers(self, two_nodes, wallet_blocks):
         full_node_1, full_node_2, server_1, server_2 = two_nodes
+
         await server_2.start_client(PeerInfo("127.0.0.1", uint16(server_1._port)), None)
 
         async def have_msgs():
-            await full_node_1.full_node.full_node_peers.address_manager.add_to_new_table(
+            await full_node_2.full_node.full_node_peers.address_manager.add_to_new_table(
                 [
                     TimestampedPeerInfo(
                         "127.0.0.1", uint16(1000), uint64(int(time.time())) - 1000
@@ -100,15 +101,15 @@ class TestFullNodeProtocol:
             msg = await full_node_2.full_node.full_node_peers.request_peers(
                 PeerInfo("[::1]", server_2._port)
             )
+
             if not (len(msg.data.peer_list) == 1):
                 return False
-            for peer in msg.data.peer_list:
-                return peer.host == "127.0.0.1" and peer.port == 1000
+            peer = msg.data.peer_list[0]
+            return peer.host == "127.0.0.1" and peer.port == 1000
 
-        await time_out_assert_custom_interval(10, 3, have_msgs, True)
+        await time_out_assert_custom_interval(10, 1, have_msgs, True)
         full_node_1.full_node.full_node_peers.address_manager = AddressManager()
 
-    """
     @pytest.mark.asyncio
     async def test_new_tip(self, two_nodes, wallet_blocks):
         full_node_1, full_node_2, server_1, server_2 = two_nodes
@@ -128,9 +129,7 @@ class TestFullNodeProtocol:
         )
         msg_1 = await full_node_1.new_tip(new_tip_1, None)
 
-        assert msg_1.data == fnp.RequestBlock(
-            uint32(3), blocks[-1].header_hash
-        )
+        assert msg_1.data == fnp.RequestBlock(uint32(3), blocks[-1].header_hash)
 
         new_tip_2 = fnp.NewTip(
             blocks[2].height, blocks[2].weight, blocks[2].header_hash
@@ -138,7 +137,6 @@ class TestFullNodeProtocol:
 
         msg_2 = await full_node_1.new_tip(new_tip_2, None)
         assert msg_2 is None
-
 
     @pytest.mark.asyncio
     async def test_new_transaction(self, two_nodes, wallet_blocks_five):
@@ -167,13 +165,12 @@ class TestFullNodeProtocol:
         new_transaction = fnp.NewTransaction(
             spend_bundle.get_hash(), uint64(100), uint64(100)
         )
-        # Not seen
-        msgs = [x async for x in full_node_1.new_transaction(new_transaction)]
-        assert len(msgs) == 1
-        assert msgs[0].message.data == fnp.RequestTransaction(spend_bundle.get_hash())
+
+        msg = await full_node_1.new_transaction(new_transaction, None)
+        assert msg.data == fnp.RequestTransaction(spend_bundle.get_hash())
 
         respond_transaction_2 = fnp.RespondTransaction(spend_bundle)
-        [x async for x in full_node_1.respond_transaction(respond_transaction_2)]
+        await full_node_1.respond_transaction(respond_transaction_2, None)
 
         program = best_solution_program(spend_bundle)
         aggsig = spend_bundle.aggregated_signature
@@ -187,19 +184,18 @@ class TestFullNodeProtocol:
             transaction_data_at_height=dic_h,
         )
         # Already seen
-        msgs = [x async for x in full_node_1.new_transaction(new_transaction)]
-        assert len(msgs) == 0
-
+        msg = await full_node_1.new_transaction(new_transaction, None)
+        assert msg is None
         # Farm one block
         for block in blocks_new:
-            [_ async for _ in full_node_1.respond_block(fnp.RespondBlock(block))]
+            await full_node_1.respond_block(fnp.RespondBlock(block), None)
 
         spend_bundles = []
         total_fee = 0
         # Fill mempool
         for puzzle_hash in puzzle_hashes:
             coin_record = (
-                await full_node_1.coin_store.get_coin_records_by_puzzle_hash(
+                await full_node_1.full_node.coin_store.get_coin_records_by_puzzle_hash(
                     puzzle_hash, blocks_new[-3].header
                 )
             )[0]
@@ -209,12 +205,11 @@ class TestFullNodeProtocol:
                 500, receiver_puzzlehash, coin_record.coin, fee=fee
             )
             respond_transaction = fnp.RespondTransaction(spend_bundle)
-            res = [
-                x async for x in full_node_1.respond_transaction(respond_transaction)
-            ]
+            await full_node_1.respond_transaction(respond_transaction, None)
 
-            # Added to mempool
-            if len(res) > 0:
+            request = fnp.RequestTransaction(spend_bundle.get_hash())
+            req = await full_node_1.request_transaction(request, None)
+            if req.data == fnp.RespondTransaction(spend_bundle):
                 total_fee += fee
                 spend_bundles.append(spend_bundle)
 
@@ -222,8 +217,8 @@ class TestFullNodeProtocol:
         new_transaction = fnp.NewTransaction(
             token_bytes(32), uint64(1000000), uint64(1)
         )
-        msgs = [x async for x in full_node_1.new_transaction(new_transaction)]
-        assert len(msgs) == 0
+        msg = await full_node_1.new_transaction(new_transaction, None)
+        assert msg is None
 
         agg = SpendBundle.aggregate(spend_bundles)
         program = best_solution_program(agg)
@@ -240,7 +235,7 @@ class TestFullNodeProtocol:
             fees=uint64(total_fee),
         )
         # Farm one block to clear mempool
-        [_ async for _ in full_node_1.respond_block(fnp.RespondBlock(blocks_new[-1]))]
+        await full_node_1.respond_block(fnp.RespondBlock(blocks_new[-1]), None)
 
     @pytest.mark.asyncio
     async def test_request_respond_transaction(self, two_nodes, wallet_blocks_five):
@@ -249,9 +244,9 @@ class TestFullNodeProtocol:
 
         tx_id = token_bytes(32)
         request_transaction = fnp.RequestTransaction(tx_id)
-        msgs = [x async for x in full_node_1.request_transaction(request_transaction)]
-        assert len(msgs) == 1
-        assert msgs[0].message.data == fnp.RejectTransactionRequest(tx_id)
+        msg = await full_node_1.request_transaction(request_transaction, None)
+        assert msg is not None
+        assert msg.data == fnp.RejectTransactionRequest(tx_id)
 
         receiver_puzzlehash = wallet_receiver.get_new_puzzlehash()
         spend_bundle = wallet_a.generate_signed_transaction(
@@ -261,14 +256,12 @@ class TestFullNodeProtocol:
         )
         assert spend_bundle is not None
         respond_transaction = fnp.RespondTransaction(spend_bundle)
-        prop = [x async for x in full_node_1.respond_transaction(respond_transaction)]
-        assert len(prop) == 1
-        assert isinstance(prop[0].message.data, fnp.NewTransaction)
+        await full_node_1.respond_transaction(respond_transaction, None)
 
         request_transaction = fnp.RequestTransaction(spend_bundle.get_hash())
-        msgs = [x async for x in full_node_1.request_transaction(request_transaction)]
-        assert len(msgs) == 1
-        assert msgs[0].message.data == fnp.RespondTransaction(spend_bundle)
+        msg = await full_node_1.request_transaction(request_transaction, None)
+        assert msg is not None
+        assert msg.data == fnp.RespondTransaction(spend_bundle)
 
     @pytest.mark.asyncio
     async def test_respond_transaction_fail(self, two_nodes, wallet_blocks):
@@ -277,9 +270,9 @@ class TestFullNodeProtocol:
 
         tx_id = token_bytes(32)
         request_transaction = fnp.RequestTransaction(tx_id)
-        msgs = [x async for x in full_node_1.request_transaction(request_transaction)]
-        assert len(msgs) == 1
-        assert msgs[0].message.data == fnp.RejectTransactionRequest(tx_id)
+        msg = await full_node_1.request_transaction(request_transaction, None)
+        assert msg is not None
+        assert msg.data == fnp.RejectTransactionRequest(tx_id)
 
         receiver_puzzlehash = wallet_receiver.get_new_puzzlehash()
 
@@ -291,10 +284,8 @@ class TestFullNodeProtocol:
         )
         assert spend_bundle is not None
         respond_transaction = fnp.RespondTransaction(spend_bundle)
-        assert (
-            len([x async for x in full_node_1.respond_transaction(respond_transaction)])
-            == 0
-        )
+        msg = await full_node_1.respond_transaction(respond_transaction, None)
+        assert msg is None
 
     @pytest.mark.asyncio
     async def test_new_pot(self, two_nodes, wallet_blocks):
@@ -304,9 +295,10 @@ class TestFullNodeProtocol:
         no_unf_block = fnp.NewProofOfTime(
             uint32(5), bytes(32 * [1]), uint64(124512), uint8(2)
         )
-        assert len([x async for x in full_node_1.new_proof_of_time(no_unf_block)]) == 0
+        msg = await full_node_1.new_proof_of_time(no_unf_block, None)
+        assert msg is None
 
-        blocks = await get_block_path(full_node_1)
+        blocks = await get_block_path(full_node_1.full_node)
 
         blocks_new = bt.get_consecutive_blocks(
             test_constants,
@@ -324,26 +316,28 @@ class TestFullNodeProtocol:
             blocks_new[-1].transactions_filter,
         )
         unf_block_req = fnp.RespondUnfinishedBlock(unf_block)
-        res = [x async for x in full_node_1.respond_unfinished_block(unf_block_req)]
+        await full_node_1.respond_unfinished_block(unf_block_req, None)
 
         dont_have = fnp.NewProofOfTime(
             unf_block.height,
             unf_block.proof_of_space.challenge_hash,
-            res[0].message.data.iterations_needed,
+            blocks_new[-1].proof_of_time.number_of_iterations,
             uint8(2),
         )
-        assert len([x async for x in full_node_1.new_proof_of_time(dont_have)]) == 1
-
-        [x async for x in full_node_1.respond_block(fnp.RespondBlock(blocks_new[-1]))]
+        msg = await full_node_1.new_proof_of_time(dont_have, None)
+        assert msg is not None
+        await full_node_1.respond_block(fnp.RespondBlock(blocks_new[-1]), None)
         assert blocks_new[-1].proof_of_time is not None
         already_have = fnp.NewProofOfTime(
             unf_block.height,
             unf_block.proof_of_space.challenge_hash,
-            res[0].message.data.iterations_needed,
+            blocks_new[-1].proof_of_time.number_of_iterations,
             blocks_new[-1].proof_of_time.witness_type,
         )
-        assert len([x async for x in full_node_1.new_proof_of_time(already_have)]) == 0
+        msg = await full_node_1.new_proof_of_time(already_have, None)
+        assert msg is None
 
+    """
     @pytest.mark.asyncio
     async def test_request_pot(self, two_nodes, wallet_blocks):
         full_node_1, full_node_2, server_1, server_2 = two_nodes
