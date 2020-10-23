@@ -58,7 +58,7 @@ class FullNodeSimulator(FullNodeAPI):
 
     @api_request
     async def farm_new_block(
-        self, request: FarmNewBlockProtocol, peer: WSChiaConnection
+        self, request: FarmNewBlockProtocol
     ):
         self.full_node.log.info("Farming new block!")
         top_tip = self.get_tip()
