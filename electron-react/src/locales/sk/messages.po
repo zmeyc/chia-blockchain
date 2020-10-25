@@ -225,7 +225,7 @@ msgstr "Čas vytvorenia"
 msgid "BlocksCard.title"
 msgstr "Bloky"
 
-#: src/components/wallet/create/WalletCreate.jsx:164
+#: src/components/wallet/create/WalletCreate.jsx:163
 msgid "CCListItems.title"
 msgstr "Možnosti coloured mincí"
 
@@ -510,56 +510,56 @@ msgstr "Prosím vyberte typ mince"
 msgid "CreateOffer.title"
 msgstr "Vytvorte obchodnú ponuku"
 
-#: src/components/plotter/Plotter.jsx:482
+#: src/components/plotter/Plotter.tsx:364
 msgid "CreatePlot.colour"
 msgstr ""
 
-#: src/components/plotter/Plotter.jsx:590
+#: src/components/plotter/Plotter.tsx:435
 msgid "CreatePlot.create"
 msgstr "Vytvoriť"
 
-#: src/components/plotter/Plotter.jsx:433
+#: src/components/plotter/Plotter.tsx:332
 msgid "CreatePlot.description"
 msgstr "Pomocou tohto nástroja môžete vytvárať polia, ktoré sú alokované na vašom pevnom disku a slúžia na ťažbu a zarábanie Chia. Počas vytvárania súborov polí sa vytvárajú aj dočasné súbory, ktoré sú vačšie ako veľkosť konečných súborov polí, takže sa uistite, že máte dostatok miesta. Skúste použiť rýchly disk ako SSD pre dočasné súbory a na výsledný adresár veľký pomalý pevný disk (napríklad externý pevný disk)."
 
-#: src/components/plotter/Plotter.jsx:543
+#: src/components/plotter/Plotter.tsx:399
 msgid "CreatePlot.numberOfBuckets"
 msgstr "Počet sektorov"
 
-#: src/components/plotter/Plotter.jsx:553
+#: src/components/plotter/Plotter.tsx:405
 msgid "CreatePlot.numberOfBucketsDescription"
 msgstr "0 automaticky vyberie počet sektorov"
 
-#: src/components/plotter/Plotter.jsx:525
+#: src/components/plotter/Plotter.tsx:389
 msgid "CreatePlot.numberOfThreads"
 msgstr "Počet vlákien"
 
-#: src/components/plotter/Plotter.jsx:478
+#: src/components/plotter/Plotter.tsx:361
 msgid "CreatePlot.plotCount"
 msgstr "Počet plotov"
 
-#: src/components/plotter/Plotter.jsx:453
-#: src/components/plotter/Plotter.jsx:458
+#: src/components/plotter/Plotter.tsx:347
+#: src/components/plotter/Plotter.tsx:351
 msgid "CreatePlot.plotSize"
 msgstr "Veľkosť plotu"
 
-#: src/components/plotter/Plotter.jsx:499
+#: src/components/plotter/Plotter.tsx:374
 msgid "CreatePlot.ramMaxUsage"
 msgstr "Maximálne využitie RAM"
 
-#: src/components/plotter/Plotter.jsx:510
+#: src/components/plotter/Plotter.tsx:378
 msgid "CreatePlot.ramMaxUsageDescription"
 msgstr "Viac pamäte mierne zvyšuje rýchlosť"
 
-#: src/components/plotter/Plotter.jsx:389
+#: src/components/plotter/Plotter.tsx:306
 msgid "CreatePlot.specifyFinalDirectory"
 msgstr "Zadajte dočasný a cieľový adresár"
 
-#: src/components/plotter/Plotter.jsx:566
+#: src/components/plotter/Plotter.tsx:414
 msgid "CreatePlot.stripeSize"
 msgstr "Veľkosť sektora"
 
-#: src/components/plotter/Plotter.jsx:427
+#: src/components/plotter/Plotter.tsx:327
 msgid "CreatePlot.title"
 msgstr "Vytvoriť pole"
 
@@ -668,23 +668,23 @@ msgstr "Obchod"
 msgid "DashboardSideBar.wallets"
 msgstr "Peňaženky"
 
-#: src/components/selectKey/SelectKey.tsx:133
+#: src/components/selectKey/SelectKey.tsx:131
 msgid "DeleteAllKeys.back"
 msgstr "Zrušiť"
 
-#: src/components/selectKey/SelectKey.tsx:136
+#: src/components/selectKey/SelectKey.tsx:134
 msgid "DeleteAllKeys.delete"
 msgstr "Zmazať"
 
-#: src/components/selectKey/SelectKey.tsx:124
+#: src/components/selectKey/SelectKey.tsx:122
 msgid "DeleteAllKeys.description"
 msgstr "Po stlačení tlačidla zmazať odstránite natrvalo všetký kľúče z počítača. Uistite sa, že máte zálohu. Ste si istý, že chcete pokračovať?"
 
-#: src/components/selectKey/SelectKey.tsx:120
+#: src/components/selectKey/SelectKey.tsx:118
 msgid "DeleteAllKeys.title"
 msgstr "Zmazať všetky kľúče"
 
-#: src/components/farmer/Farmer.jsx:711
+#: src/components/farmer/Farmer.jsx:708
 msgid "Farmer.title"
 msgstr "Ťažba"
 
@@ -722,7 +722,7 @@ msgstr "Celková vyťažená Chia"
 msgid "FarmerStatus.totalSizeOfLocalPlots"
 msgstr "Celková veľkosť lokálnych polí"
 
-#: src/components/fullNode/FullNode.jsx:546
+#: src/components/fullNode/FullNode.jsx:545
 msgid "FullNode.title"
 msgstr "Všetky uzly"
 
@@ -738,31 +738,31 @@ msgstr "História"
 msgid "LocaleToggle.helpToTranslate"
 msgstr "Pomôcť s prekladom"
 
-#: src/components/wallet/create/WalletCreate.jsx:116
+#: src/components/wallet/create/WalletCreate.jsx:115
 msgid "MainWalletList.colouredCoin"
 msgstr ""
 
-#: src/components/wallet/create/WalletCreate.jsx:240
+#: src/components/wallet/create/WalletCreate.jsx:239
 msgid "MainWalletList.createAdminWallet"
 msgstr "Vytvoriť peňaženku pre správcu"
 
-#: src/components/wallet/create/WalletCreate.jsx:176
+#: src/components/wallet/create/WalletCreate.jsx:175
 msgid "MainWalletList.createNewColouredCoin"
 msgstr ""
 
-#: src/components/wallet/create/WalletCreate.jsx:252
+#: src/components/wallet/create/WalletCreate.jsx:251
 msgid "MainWalletList.createUserWallet"
 msgstr "Vytvoriť peňaženku pre používateľa"
 
-#: src/components/wallet/create/WalletCreate.jsx:188
+#: src/components/wallet/create/WalletCreate.jsx:187
 msgid "MainWalletList.createWalletForExistingColour"
 msgstr ""
 
-#: src/components/wallet/create/WalletCreate.jsx:126
+#: src/components/wallet/create/WalletCreate.jsx:125
 msgid "MainWalletList.rateLimited"
 msgstr ""
 
-#: src/components/wallet/create/WalletCreate.jsx:104
+#: src/components/wallet/create/WalletCreate.jsx:103
 msgid "MainWalletList.title"
 msgstr "Vyberte typ peňaženky"
 
@@ -863,223 +863,239 @@ msgstr "Velkosť"
 msgid "Plots.title"
 msgstr "Polia"
 
-#: src/components/plotter/Plotter.jsx:677
+#: src/components/plotter/Plotter.tsx:509
 msgid "Plotter.title"
 msgstr "Pole"
 
-#: src/components/plotter/Plotter.jsx:298
+#: src/components/plotter/PlotterCancelModal.tsx:27
+msgid "PlotterCancelModal.cancelPlotting"
+msgstr "Zastaviť vytváranie polí"
+
+#: src/components/plotter/PlotterCancelModal.tsx:20
+msgid "PlotterCancelModal.description"
+msgstr "Naozaj chcete ukončiť vytváranie polí"
+
+#: src/components/plotter/PlotterCancelModal.tsx:32
+msgid "PlotterCancelModal.keepPlotting"
+msgstr "Pokračovať"
+
+#: src/components/plotter/PlotterCancelModal.tsx:14
+msgid "PlotterCancelModal.title"
+msgstr "Zastaviť vytváranie polí"
+
+#: src/components/plotter/Plotter.tsx:250
 msgid "PlotterFinalLocation.availableOnlyFromElectron"
 msgstr "Táto možnosť je dostupná iba z Electron aplikácie"
 
-#: src/components/plotter/Plotter.jsx:318
+#: src/components/plotter/Plotter.tsx:258
 msgid "PlotterFinalLocation.finalFolderLocation"
 msgstr "Cieľový adresár"
 
-#: src/components/plotter/Plotter.jsx:335
+#: src/components/plotter/Plotter.tsx:265
 msgid "PlotterFinalLocation.select"
 msgstr "Vybrať"
 
-#: src/components/plotter/Plotter.jsx:646
+#: src/components/plotter/Plotter.tsx:491
 msgid "PlotterProgress.cancel"
 msgstr "Zrušiť"
 
-#: src/components/plotter/Plotter.jsx:657
+#: src/components/plotter/Plotter.tsx:496
 msgid "PlotterProgress.clearLog"
 msgstr "Zmazať záznamy"
 
-#: src/components/plotter/Plotter.jsx:630
+#: src/components/plotter/Plotter.tsx:482
 msgid "PlotterProgress.plottingStoppedSuccesfully"
 msgstr "Vytváranie polí sa úspešne zastavilo."
 
-#: src/components/plotter/Plotter.jsx:619
+#: src/components/plotter/Plotter.tsx:472
 msgid "PlotterProgress.title"
 msgstr "Aktuálny stav"
 
-#: src/components/plotter/Plotter.jsx:232
+#: src/components/plotter/Plotter.tsx:214
 msgid "PlotterWorkLocation.availableOnlyFromElectron"
 msgstr "Táto možnosť je dostupná iba z Electron aplikácie"
 
-#: src/components/plotter/Plotter.jsx:269
+#: src/components/plotter/Plotter.tsx:229
 msgid "PlotterWorkLocation.select"
 msgstr "Vybrať"
 
-#: src/components/plotter/Plotter.jsx:253
+#: src/components/plotter/Plotter.tsx:224
 msgid "PlotterWorkLocation.temporaryFolderLocation"
 msgstr "Dočasný adresár"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:649
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:648
 msgid "RLBalanceCard.pendingBalance"
 msgstr "Nespracovaný zostatok"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:658
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:657
 msgid "RLBalanceCard.pendingChange"
 msgstr "Nespracované zmeny"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:640
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:639
 msgid "RLBalanceCard.pendingTotalBalance"
 msgstr "Celkový nespracovaný zostatok"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:615
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:614
 msgid "RLBalanceCard.spendableBalance"
 msgstr "Disponibilný zostatok"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:604
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:603
 msgid "RLBalanceCard.title"
 msgstr "Zostatok"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:609
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:608
 msgid "RLBalanceCard.totalBalance"
 msgstr "Celkový zostatok"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:631
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:630
 msgid "RLBalanceCard.viewPendingBalances"
 msgstr "Zoraziť nespracované zostatky"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:466
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:540
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:465
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:539
 msgid "RLDetailsCard.copy"
 msgstr "Kopírovať"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:513
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:512
 msgid "RLDetailsCard.description"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:526
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:525
 msgid "RLDetailsCard.infoPacket"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:453
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:452
 msgid "RLDetailsCard.myPubkey"
 msgstr "Môj verejný kľúč"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:430
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:492
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:429
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:491
 msgid "RLDetailsCard.spendingInterval"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:437
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:499
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:436
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:498
 msgid "RLDetailsCard.spendingLimit"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:421
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:483
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:420
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:482
 msgid "RLDetailsCard.title"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:868
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:867
 msgid "RLHistoryCard.title"
 msgstr "História"
 
-#: src/components/wallet/create/WalletCreate.jsx:228
+#: src/components/wallet/create/WalletCreate.jsx:227
 msgid "RLListItems.title"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:794
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:793
 msgid "RLSendCard.addressPuzzleHash"
 msgstr "Adresa"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:818
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:817
 msgid "RLSendCard.amount"
 msgstr "Suma"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:752
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:751
 msgid "RLSendCard.enter0fee"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:723
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:722
 msgid "RLSendCard.enterValidAmount"
 msgstr "Prosím zadajte platnú sumu"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:733
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:732
 msgid "RLSendCard.enterValidFee"
 msgstr "Prosím zadajte platný poplatok"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:831
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:830
 msgid "RLSendCard.fee"
 msgstr "Poplatok"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:848
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:847
 msgid "RLSendCard.send"
 msgstr "Poslať"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:772
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:771
 msgid "RLSendCard.title"
 msgstr "Vytvoriť transakciu"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:707
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:706
 msgid "RLSendCard.waitForSyncing"
 msgstr "Pred uskutočnením transakcie dokončite synchronizáciu"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:929
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:928
 msgid "RLTransactionTable.amount"
 msgstr "Suma"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:905
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:904
 msgid "RLTransactionTable.confirmed"
 msgstr "Potvrdené"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:923
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:922
 msgid "RLTransactionTable.date"
 msgstr "Dátum"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:932
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:931
 msgid "RLTransactionTable.fee"
 msgstr "Poplatok"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:899
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:898
 msgid "RLTransactionTable.incoming"
 msgstr "Prichádzajúce"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:890
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:889
 msgid "RLTransactionTable.noPreviousTransactions"
 msgstr "Žiadne predchádzajúce transakcie"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:901
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:900
 msgid "RLTransactionTable.outgoing"
 msgstr "Odchádzajúce"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:907
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:906
 msgid "RLTransactionTable.pending"
 msgstr "Nespracované"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:926
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:925
 msgid "RLTransactionTable.status"
 msgstr "Stav"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:920
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:919
 msgid "RLTransactionTable.to"
 msgstr "Príjemca"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:917
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:916
 msgid "RLTransactionTable.type"
 msgstr "Typ"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:327
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:326
 msgid "RTIncompleteCard.copy"
 msgstr "Kopírovať"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:297
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:296
 msgid "RTIncompleteCard.description"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:338
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:337
 msgid "RTIncompleteCard.description2"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:356
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:355
 msgid "RTIncompleteCard.infoPacket"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:371
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:370
 msgid "RTIncompleteCard.submit"
 msgstr "Odoslať"
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:286
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:285
 msgid "RTIncompleteCard.title"
 msgstr ""
 
-#: src/components/wallet/rateLimited/WalletRateLimited.jsx:313
+#: src/components/wallet/rateLimited/WalletRateLimited.jsx:312
 msgid "RTIncompleteCard.userPubkey"
 msgstr "Používateľov verejný kľúč"
 
@@ -1095,35 +1111,35 @@ msgstr "Vyhľadať"
 msgid "SearchBlock.title"
 msgstr "Vyhľadať blok podľa hashu"
 
-#: src/components/selectKey/SelectKey.tsx:100
+#: src/components/selectKey/SelectKey.tsx:98
 msgid "SelectKey.createNewPrivateKey"
 msgstr "Vytvoriť nový privátny kľúč"
 
-#: src/components/selectKey/SelectKey.tsx:113
+#: src/components/selectKey/SelectKey.tsx:111
 msgid "SelectKey.deleteAllKeys"
 msgstr "Zmazať všetky kľúče"
 
-#: src/components/selectKey/SelectKey.tsx:107
+#: src/components/selectKey/SelectKey.tsx:105
 msgid "SelectKey.importFromMnemonics"
 msgstr "Obnoviť z mnemotechniky (24 slov)"
 
-#: src/components/selectKey/SelectKey.tsx:78
+#: src/components/selectKey/SelectKey.tsx:76
 msgid "SelectKey.selectFingerprint"
 msgstr "Privátny kľúč s verejným odtlačkom {fingerprint}"
 
-#: src/components/selectKey/SelectKey.tsx:80
+#: src/components/selectKey/SelectKey.tsx:78
 msgid "SelectKey.selectKeyCanBeBacked"
 msgstr "Možnosť zálohovať pomocou mnemotechnickej pomôcky"
 
-#: src/components/selectKey/SelectKey.tsx:68
+#: src/components/selectKey/SelectKey.tsx:66
 msgid "SelectKey.signInDescription"
 msgstr "Vitajte v Chia. Prosím prihláste sa s existujúcim kľúčom alebo si vytvorte nový."
 
-#: src/components/selectKey/SelectKey.tsx:65
+#: src/components/selectKey/SelectKey.tsx:63
 msgid "SelectKey.signInTitle"
 msgstr "Prihlásiť sa"
 
-#: src/components/selectKey/SelectKey.tsx:62
+#: src/components/selectKey/SelectKey.tsx:60
 msgid "SelectKey.title"
 msgstr "Vyberte kľúč"
 

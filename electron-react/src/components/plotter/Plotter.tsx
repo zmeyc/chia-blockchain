@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import Grid from '@material-ui/core/Grid';
 import { makeStyles } from '@material-ui/core/styles';
@@ -34,6 +34,8 @@ import { service_plotter } from '../../util/service_names';
 import DashboardTitle from '../dashboard/DashboardTitle';
 import Flex from '../flex/Flex';
 import Log from '../log/Log';
+import PlotterCancelModal from './PlotterCancelModal';
+import { RootState } from '../../modules/rootReducer';
 
 const StyledContainer = styled(Container)`
   margin-top: ${({ theme }) => `${theme.spacing(2)}px`};
@@ -205,13 +207,14 @@ const plot_size_options = [
 const WorkLocation = () => {
   const dispatch = useDispatch();
   const work_location = useSelector(
-    (state) => state.plot_control.workspace_location,
+    (state: RootState) => state.plot_control.workspace_location,
   );
   async function select() {
     if (isElectron()) {
       const dialogOptions = {
         properties: ['openDirectory', 'showHiddenFiles'],
       };
+      // @ts-ignore
       const result = await window.remote.dialog.showOpenDialog(dialogOptions);
       const filePath = result.filePaths[0];
       if (filePath) {
@@ -261,13 +264,14 @@ const WorkLocation = () => {
 const FinalLocation = () => {
   const dispatch = useDispatch();
   const final_location = useSelector(
-    (state) => state.plot_control.final_location,
+    (state: RootState) => state.plot_control.final_location,
   );
   async function select() {
     if (isElectron()) {
       const dialogOptions = {
         properties: ['openDirectory', 'showHiddenFiles'],
       };
+      // @ts-ignore
       const result = await window.remote.dialog.showOpenDialog(dialogOptions);
       const filePath = result.filePaths[0];
       if (filePath) {
@@ -318,20 +322,23 @@ function CreatePlot() {
   const dispatch = useDispatch();
   const classes = useStyles();
   const work_location = useSelector(
-    (state) => state.plot_control.workspace_location,
+    (state: RootState) => state.plot_control.workspace_location,
   );
-  let t2 = useSelector((state) => state.plot_control.t2);
+  let t2 = useSelector((state: RootState) => state.plot_control.t2);
   const final_location = useSelector(
-    (state) => state.plot_control.final_location,
+    (state: RootState) => state.plot_control.final_location,
   );
-  const [plotSize, setPlotSize] = React.useState(32);
-  const [plotCount, setPlotCount] = React.useState(1);
-  const [maxRam, setMaxRam] = React.useState(3072);
-  const [numThreads, setNumThreads] = React.useState(2);
-  const [numBuckets, setNumBuckets] = React.useState(0);
-  const [stripeSize, setStripeSize] = React.useState(65536);
+  const [plotSize, setPlotSize] = React.useState<number>(32);
+  const [plotCount, setPlotCount] = React.useState<number>(1);
+  const [maxRam, setMaxRam] = React.useState<number>(3072);
+  const [numThreads, setNumThreads] = React.useState<number>(2);
+  const [numBuckets, setNumBuckets] = React.useState<number>(0);
+  const [stripeSize, setStripeSize] = React.useState<number>(65536);
 
-  const changePlotSize = (event) => {
+  const changePlotSize = (event: React.ChangeEvent<{
+    name?: string | undefined;
+    value: number;
+}>) => {
     setPlotSize(event.target.value);
     for (const pso of plot_size_options) {
       if (pso.value === event.target.value) {
@@ -339,20 +346,23 @@ function CreatePlot() {
       }
     }
   };
-  const changePlotCount = (event) => {
+  const changePlotCount = (event: React.ChangeEvent<{
+    name?: string | undefined;
+    value: number;
+  }>) => {
     setPlotCount(event.target.value);
   };
-  const handleSetMaxRam = (event) => {
-    setMaxRam(event.target.value);
+  const handleSetMaxRam = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setMaxRam(Number.parseInt(event.target.value));
   };
-  const handleSetNumBuckets = (event) => {
-    setNumBuckets(event.target.value);
+  const handleSetNumBuckets = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setNumBuckets(Number.parseInt(event.target.value));
   };
-  const handleSetNumThreads = (event) => {
-    setNumThreads(event.target.value);
+  const handleSetNumThreads = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setNumThreads(Number.parseInt(event.target.value));
   };
-  const handleSetStripeSize = (event) => {
-    setStripeSize(event.target.value);
+  const handleSetStripeSize = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setStripeSize(Number.parseInt(event.target.value));
   };
 
   function create() {
@@ -418,13 +428,13 @@ function CreatePlot() {
                 <FormControl
                   fullWidth
                   variant="outlined"
-                  className={classes.formControl}
                 >
                   <InputLabel>
                     <Trans id="CreatePlot.plotSize">Plot Size</Trans>
                   </InputLabel>
                   <Select
                     value={plotSize}
+                    // @ts-ignore
                     onChange={changePlotSize}
                     label={<Trans id="CreatePlot.plotSize">Plot Size</Trans>}
                   >
@@ -444,11 +454,11 @@ function CreatePlot() {
                 <FormControl
                   fullWidth
                   variant="outlined"
-                  className={classes.formControl}
                 >
                   <InputLabel><Trans id="CreatePlot.plotCount">Plot Count</Trans></InputLabel>
                   <Select
                     value={plotCount}
+                    // @ts-ignore
                     onChange={changePlotCount}
                     label={<Trans id="CreatePlot.colour">Colour</Trans>}
                   >
@@ -464,7 +474,6 @@ function CreatePlot() {
                 <FormControl
                   fullWidth
                   variant="outlined"
-                  className={classes.formControl}
                 >
                   <InputLabel>
                     <Trans id="CreatePlot.ramMaxUsage">RAM max usage</Trans>
@@ -490,7 +499,6 @@ function CreatePlot() {
                 <FormControl
                   fullWidth
                   variant="outlined"
-                  className={classes.formControl}
                 >
                   <InputLabel>
                     <Trans id="CreatePlot.numberOfThreads">
@@ -508,7 +516,6 @@ function CreatePlot() {
                 <FormControl
                   fullWidth
                   variant="outlined"
-                  className={classes.formControl}
                 >
                   <InputLabel>
                     <Trans id="CreatePlot.numberOfBuckets">
@@ -531,7 +538,6 @@ function CreatePlot() {
                 <FormControl
                   fullWidth
                   variant="outlined"
-                  className={classes.formControl}
                 >
                   <InputLabel>
                     <Trans id="CreatePlot.stripeSize">Stripe Size</Trans>
@@ -576,21 +582,31 @@ function CreatePlot() {
 }
 
 function Proggress() {
-  const progress = useSelector((state) => state.plot_control.progress);
+  const [showCancelPlottingModal, setShowCancelPlottingModal] = useState<boolean>(false);
+  const progress = useSelector((state: RootState) => state.plot_control.progress);
   const dispatch = useDispatch();
 
   const inProgress = useSelector(
-    (state) => state.plot_control.plotting_in_proggress,
+    (state: RootState) => state.plot_control.plotting_in_proggress,
   );
   const plottingStopped = useSelector(
-    (state) => state.plot_control.plotting_stopped,
+    (state: RootState) => state.plot_control.plotting_stopped,
   );
 
   function clearLog() {
     dispatch(resetProgress());
   }
+
   function cancel() {
-    dispatch(stopService(service_plotter));
+    setShowCancelPlottingModal(true);
+  }
+
+  function handleClosePlotterCancelModal(cancel?: boolean) {
+    if (cancel) {
+      dispatch(stopService(service_plotter));
+    }
+
+    setShowCancelPlottingModal(false);
   }
 
   if (!inProgress && !plottingStopped) {
@@ -598,53 +614,59 @@ function Proggress() {
   }
 
   return (
-    <Card>
-      <CardContent>
-        <Grid container spacing={3}>
-          <Grid xs={12} item>
-            <Typography component="h6" variant="h6">
-              <Trans id="PlotterProgress.title">Progress</Trans>
-            </Typography>
-          </Grid>
-          <Grid xs={12} item>
-            <Log>
-              {progress.trim()}
-            </Log>
-          </Grid>
-          {plottingStopped && (
+    <>
+      <PlotterCancelModal
+        isOpen={showCancelPlottingModal}
+        onClose={handleClosePlotterCancelModal}
+      />
+      <Card>
+        <CardContent>
+          <Grid container spacing={3}>
             <Grid xs={12} item>
-              <Alert severity="success">
-                <Trans id="PlotterProgress.plottingStoppedSuccesfully">
-                  Plotting stopped succesfully.
-                </Trans>
-              </Alert>
+              <Typography component="h6" variant="h6">
+                <Trans id="PlotterProgress.title">Progress</Trans>
+              </Typography>
             </Grid>
-          )}
-          <Grid xs={12} item>
-            <Grid justify="flex-end" spacing={2} container>
-              {!plottingStopped && (
+            <Grid xs={12} item>
+              <Log>
+                {progress.trim()}
+              </Log>
+            </Grid>
+            {plottingStopped && (
+              <Grid xs={12} item>
+                <Alert severity="success">
+                  <Trans id="PlotterProgress.plottingStoppedSuccesfully">
+                    Plotting stopped succesfully.
+                  </Trans>
+                </Alert>
+              </Grid>
+            )}
+            <Grid xs={12} item>
+              <Grid justify="flex-end" spacing={2} container>
+                {!plottingStopped && (
+                  <Grid item>
+                    <Button
+                      onClick={cancel}
+                      variant="contained"
+                    >
+                      <Trans id="PlotterProgress.cancel">Cancel</Trans>
+                    </Button>
+                  </Grid>
+                )}
                 <Grid item>
                   <Button
-                    onClick={cancel}
+                    onClick={clearLog}
                     variant="contained"
                   >
-                    <Trans id="PlotterProgress.cancel">Cancel</Trans>
+                    <Trans id="PlotterProgress.clearLog">Clear Log</Trans>
                   </Button>
                 </Grid>
-              )}
-              <Grid item>
-                <Button
-                  onClick={clearLog}
-                  variant="contained"
-                >
-                  <Trans id="PlotterProgress.clearLog">Clear Log</Trans>
-                </Button>
               </Grid>
             </Grid>
           </Grid>
-        </Grid>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </>
   );
 }
 
