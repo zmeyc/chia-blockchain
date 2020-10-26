@@ -312,7 +312,6 @@ const FinalLocation = () => {
 
 function CreatePlot() {
   const dispatch = useDispatch();
-  const classes = useStyles();
   const work_location = useSelector(
     (state: RootState) => state.plot_control.workspace_location,
   );
