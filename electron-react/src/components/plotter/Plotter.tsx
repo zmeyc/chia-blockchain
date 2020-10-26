@@ -243,18 +243,14 @@ const WorkLocation = () => {
             readOnly: true,
           }}
           value={work_location}
-          label={(
+          label={
             <Trans id="PlotterWorkLocation.temporaryFolderLocation">
               Temporary folder location
             </Trans>
-          )}
+          }
         />
       </Box>
-      <Button
-        onClick={select}
-        variant="contained"
-        size="large"
-      >
+      <Button onClick={select} variant="contained" size="large">
         <Trans id="PlotterWorkLocation.select">Select</Trans>
       </Button>
     </Box>
@@ -295,11 +291,11 @@ const FinalLocation = () => {
         <TextField
           onClick={select}
           fullWidth
-          label={(
+          label={
             <Trans id="PlotterFinalLocation.finalFolderLocation">
               Final folder location
             </Trans>
-          )}
+          }
           value={final_location}
           inputProps={{
             readOnly: true,
@@ -307,11 +303,7 @@ const FinalLocation = () => {
           variant="outlined"
         />
       </Box>
-      <Button
-        onClick={select}
-        size="large"
-        variant="contained"
-      >
+      <Button onClick={select} size="large" variant="contained">
         <Trans id="PlotterFinalLocation.select">Select</Trans>
       </Button>
     </Box>
@@ -335,10 +327,12 @@ function CreatePlot() {
   const [numBuckets, setNumBuckets] = React.useState<number>(0);
   const [stripeSize, setStripeSize] = React.useState<number>(65536);
 
-  const changePlotSize = (event: React.ChangeEvent<{
-    name?: string | undefined;
-    value: number;
-}>) => {
+  const changePlotSize = (
+    event: React.ChangeEvent<{
+      name?: string | undefined;
+      value: number;
+    }>,
+  ) => {
     setPlotSize(event.target.value);
     for (const pso of plot_size_options) {
       if (pso.value === event.target.value) {
@@ -346,22 +340,32 @@ function CreatePlot() {
       }
     }
   };
-  const changePlotCount = (event: React.ChangeEvent<{
-    name?: string | undefined;
-    value: number;
-  }>) => {
+  const changePlotCount = (
+    event: React.ChangeEvent<{
+      name?: string | undefined;
+      value: number;
+    }>,
+  ) => {
     setPlotCount(event.target.value);
   };
-  const handleSetMaxRam = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleSetMaxRam = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setMaxRam(Number.parseInt(event.target.value));
   };
-  const handleSetNumBuckets = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleSetNumBuckets = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setNumBuckets(Number.parseInt(event.target.value));
   };
-  const handleSetNumThreads = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleSetNumThreads = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setNumThreads(Number.parseInt(event.target.value));
   };
-  const handleSetStripeSize = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleSetStripeSize = (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setStripeSize(Number.parseInt(event.target.value));
   };
 
@@ -416,19 +420,17 @@ function CreatePlot() {
                 Using this tool, you can create plots, which are allocated space
                 on your hard drive used to farm and earn Chia. Also, temporary
                 files are created during the plotting process, which exceed the
-                size of the final plot files, so make sure you have enough space.
-                Try to use a fast drive like an SSD for the temporary folder, and
-                a large slow hard drive (like external HDD) for the final folder.
+                size of the final plot files, so make sure you have enough
+                space. Try to use a fast drive like an SSD for the temporary
+                folder, and a large slow hard drive (like external HDD) for the
+                final folder.
               </Trans>
             </Typography>
           </Grid>
           <Grid xs={12} item>
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                <FormControl
-                  fullWidth
-                  variant="outlined"
-                >
+                <FormControl fullWidth variant="outlined">
                   <InputLabel>
                     <Trans id="CreatePlot.plotSize">Plot Size</Trans>
                   </InputLabel>
@@ -451,11 +453,10 @@ function CreatePlot() {
                 </FormControl>
               </Grid>
               <Grid item xs={4}>
-                <FormControl
-                  fullWidth
-                  variant="outlined"
-                >
-                  <InputLabel><Trans id="CreatePlot.plotCount">Plot Count</Trans></InputLabel>
+                <FormControl fullWidth variant="outlined">
+                  <InputLabel>
+                    <Trans id="CreatePlot.plotCount">Plot Count</Trans>
+                  </InputLabel>
                   <Select
                     value={plotCount}
                     // @ts-ignore
@@ -471,10 +472,7 @@ function CreatePlot() {
                 </FormControl>
               </Grid>
               <Grid item xs={4}>
-                <FormControl
-                  fullWidth
-                  variant="outlined"
-                >
+                <FormControl fullWidth variant="outlined">
                   <InputLabel>
                     <Trans id="CreatePlot.ramMaxUsage">RAM max usage</Trans>
                   </InputLabel>
@@ -496,10 +494,7 @@ function CreatePlot() {
             </Grid>
             <Grid container spacing={2}>
               <Grid item xs={4}>
-                <FormControl
-                  fullWidth
-                  variant="outlined"
-                >
+                <FormControl fullWidth variant="outlined">
                   <InputLabel>
                     <Trans id="CreatePlot.numberOfThreads">
                       Number of threads
@@ -513,10 +508,7 @@ function CreatePlot() {
                 </FormControl>
               </Grid>
               <Grid item xs={4}>
-                <FormControl
-                  fullWidth
-                  variant="outlined"
-                >
+                <FormControl fullWidth variant="outlined">
                   <InputLabel>
                     <Trans id="CreatePlot.numberOfBuckets">
                       Number of buckets
@@ -535,10 +527,7 @@ function CreatePlot() {
                 </FormControl>
               </Grid>
               <Grid item xs={4}>
-                <FormControl
-                  fullWidth
-                  variant="outlined"
-                >
+                <FormControl fullWidth variant="outlined">
                   <InputLabel>
                     <Trans id="CreatePlot.stripeSize">Stripe Size</Trans>
                   </InputLabel>
@@ -582,8 +571,12 @@ function CreatePlot() {
 }
 
 function Proggress() {
-  const [showCancelPlottingModal, setShowCancelPlottingModal] = useState<boolean>(false);
-  const progress = useSelector((state: RootState) => state.plot_control.progress);
+  const [showCancelPlottingModal, setShowCancelPlottingModal] = useState<
+    boolean
+  >(false);
+  const progress = useSelector(
+    (state: RootState) => state.plot_control.progress,
+  );
   const dispatch = useDispatch();
 
   const inProgress = useSelector(
@@ -628,9 +621,7 @@ function Proggress() {
               </Typography>
             </Grid>
             <Grid xs={12} item>
-              <Log>
-                {progress.trim()}
-              </Log>
+              <Log>{progress.trim()}</Log>
             </Grid>
             {plottingStopped && (
               <Grid xs={12} item>
@@ -645,19 +636,13 @@ function Proggress() {
               <Grid justify="flex-end" spacing={2} container>
                 {!plottingStopped && (
                   <Grid item>
-                    <Button
-                      onClick={cancel}
-                      variant="contained"
-                    >
+                    <Button onClick={cancel} variant="contained">
                       <Trans id="PlotterProgress.cancel">Cancel</Trans>
                     </Button>
                   </Grid>
                 )}
                 <Grid item>
-                  <Button
-                    onClick={clearLog}
-                    variant="contained"
-                  >
+                  <Button onClick={clearLog} variant="contained">
                     <Trans id="PlotterProgress.clearLog">Clear Log</Trans>
                   </Button>
                 </Grid>

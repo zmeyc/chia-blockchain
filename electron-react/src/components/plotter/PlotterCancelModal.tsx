@@ -1,10 +1,17 @@
 import React from 'react';
-import { Trans } from "@lingui/react";
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@material-ui/core';
+import { Trans } from '@lingui/react';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from '@material-ui/core';
 
 type Props = {
-  isOpen: boolean,
-  onClose: (cancelPlotting?: boolean) => void,
+  isOpen: boolean;
+  onClose: (cancelPlotting?: boolean) => void;
 };
 
 export default function PlotterCancelModal(props: Props) {
@@ -26,9 +33,7 @@ export default function PlotterCancelModal(props: Props) {
       aria-describedby="alert-dialog-description"
     >
       <DialogTitle id="alert-dialog-title">
-        <Trans id="PlotterCancelModal.title">
-          Cancel Plotting?
-        </Trans>
+        <Trans id="PlotterCancelModal.title">Cancel Plotting?</Trans>
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="alert-dialog-description">
@@ -38,15 +43,11 @@ export default function PlotterCancelModal(props: Props) {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-      <Button onClick={handleCancelPlotting} color="secondary">
-          <Trans id="PlotterCancelModal.cancelPlotting">
-            Cancel Plotting
-          </Trans>
+        <Button onClick={handleCancelPlotting} color="secondary">
+          <Trans id="PlotterCancelModal.cancelPlotting">Cancel Plotting</Trans>
         </Button>
         <Button onClick={handleKeepPlotting} color="primary" autoFocus>
-          <Trans id="PlotterCancelModal.keepPlotting">
-            Keep Plotting
-          </Trans>
+          <Trans id="PlotterCancelModal.keepPlotting">Keep Plotting</Trans>
         </Button>
       </DialogActions>
     </Dialog>
