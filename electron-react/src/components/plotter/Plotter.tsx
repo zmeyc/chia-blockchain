@@ -40,8 +40,6 @@ const StyledContainer = styled(Container)`
   margin-top: ${({ theme }) => `${theme.spacing(2)}px`};
 `;
 
-const drawerWidth = 180;
-
 const plot_size_options = [
   { label: '600MiB', value: 25, workspace: '1.8GiB', default_ram: 200 },
   { label: '1.3GiB', value: 26, workspace: '3.6GiB', default_ram: 200 },
