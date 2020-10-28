@@ -57,9 +57,7 @@ class FullNodeSimulator(FullNodeAPI):
         return current_blocks
 
     @api_request
-    async def farm_new_block(
-        self, request: FarmNewBlockProtocol
-    ):
+    async def farm_new_block(self, request: FarmNewBlockProtocol):
         self.full_node.log.info("Farming new block!")
         top_tip = self.get_tip()
         if top_tip is None or self.full_node.server is None:
