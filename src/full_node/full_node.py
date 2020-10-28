@@ -25,7 +25,7 @@ from src.protocols import (
 )
 from src.server.node_discovery import FullNodePeers
 from src.server.outbound_message import Delivery, Message, NodeType, OutboundMessage
-from src.server.server import ChiaServer
+from src.server.server import *
 from src.server.ws_connection import WSChiaConnection
 from src.types.challenge import Challenge
 from src.types.full_block import FullBlock
@@ -51,7 +51,7 @@ class FullNode:
     sync_peers_handler: Optional[SyncPeersHandler]
     blockchain: Blockchain
     config: Dict
-    server: Optional[ChiaServer]
+    server: Any
     log: logging.Logger
     constants: ConsensusConstants
     _shut_down: bool
@@ -274,8 +274,8 @@ class FullNode:
 
     def _num_needed_peers(self) -> int:
         assert self.server is not None
-        assert self.server.global_connections is not None
-        diff = self.config["target_peer_count"] - len(self.server.global_connections)
+        assert self.server.all_connections is not None
+        diff = self.config["target_peer_count"] - len(self.server.all_connections)
         return diff if diff >= 0 else 0
 
     def _close(self):
@@ -384,7 +384,7 @@ class FullNode:
 
         peers = [
             con.peer_node_id
-            for id, con in self.server.global_connections.items()
+            for id, con in self.server.all_connections.items()
             if (
                 con.peer_node_id is not None
                 and con.connection_type == NodeType.FULL_NODE
@@ -414,7 +414,7 @@ class FullNode:
 
             cur_peers = [
                 con.peer_node_id
-                for id, con in self.server.global_connections.items()
+                for id, con in self.server.all_connections.items()
                 if (
                     con.peer_node_id is not None
                     and con.connection_type == NodeType.FULL_NODE
