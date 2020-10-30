@@ -7,6 +7,7 @@ from src.full_node.blockchain import Blockchain
 from src.full_node.sync_store import SyncStore
 from src.protocols import full_node_protocol
 from src.server.outbound_message import Delivery, Message, NodeType, OutboundMessage
+from src.server.ws_connection import WSChiaConnection
 from src.types.full_block import FullBlock
 from src.types.header_block import HeaderBlock
 from src.types.sized_bytes import bytes32
@@ -37,7 +38,7 @@ class SyncPeersHandler:
     def __init__(
         self,
         sync_store: SyncStore,
-        peers: List[bytes32],
+        peers: List[WSChiaConnection],
         fork_height: uint32,
         blockchain: Blockchain,
     ):
@@ -54,8 +55,8 @@ class SyncPeersHandler:
         # If a response for a block request is not received by this timeout, the connection
         # is closed.
         self.BLOCK_RESPONSE_TIMEOUT = 60
-        for node_id in peers:
-            self.current_outbound_sets[node_id] = {}
+        for peer in peers:
+            self.current_outbound_sets[peer.peer_node_id] = {}
 
         self.potential_blocks_received = self.sync_store.potential_blocks_received
         self.potential_blocks = self.sync_store.potential_blocks
@@ -135,7 +136,7 @@ class SyncPeersHandler:
         outbound_sets_list = list(self.current_outbound_sets.items())
         outbound_sets_list.sort(key=lambda x: len(x[1]))
         index = 0
-        to_yield: List[OutboundMessage] = []
+        messages: List[OutboundMessage] = []
         for height in to_send:
             # Find a the next peer with an empty slot. There must be an empty slot: to_send
             # includes up to free_slots things, and current_outbound sets cannot change since there is
@@ -159,9 +160,9 @@ class SyncPeersHandler:
                 Delivery.SPECIFIC,
                 node_id,
             )
-            to_yield.append(msg)
+            messages.append(msg)
 
-        return to_yield
+        return messages
 
     async def new_block(
         self, block: Union[FullBlock, HeaderBlock]

@@ -1,12 +1,8 @@
-import asyncio
 import concurrent
-import functools
-import logging
-import traceback
 import time
 import random
-from pathlib import Path
-from typing import AsyncGenerator, Dict, List, Optional, Tuple, Callable
+
+from typing import AsyncGenerator
 import aiosqlite
 from src.consensus.constants import ConsensusConstants
 from src.full_node.block_store import BlockStore
@@ -23,8 +19,10 @@ from src.protocols import (
     timelord_protocol,
     wallet_protocol,
 )
+from src.protocols.full_node_protocol import AllHeaderHashes
+from src.server.connection_utils import send_all_first_reply
 from src.server.node_discovery import FullNodePeers
-from src.server.outbound_message import Delivery, Message, NodeType, OutboundMessage
+from src.server.outbound_message import Delivery, OutboundMessage
 from src.server.server import *
 from src.server.ws_connection import WSChiaConnection
 from src.types.challenge import Challenge
@@ -300,6 +298,8 @@ class FullNode:
         self.log.info("Waiting to receive tips from peers.")
         self.sync_peers_handler = None
         self.sync_store.set_waiting_for_tips(True)
+        nodes = list(self.server.full_nodes.values())
+
         # TODO: better way to tell that we have finished receiving tips
         # TODO: fix DOS issue. Attacker can request syncing to an invalid blockchain
         await asyncio.sleep(2)
@@ -344,34 +344,18 @@ class FullNode:
 
         self.sync_store.set_potential_hashes_received(asyncio.Event())
 
-        sleep_interval = 10
-        total_time_slept = 0
-
         # TODO: verify weight here once we have the correct protocol messages (interative flyclient)
-        while True:
-            if total_time_slept > 30:
-                raise TimeoutError("Took too long to fetch header hashes.")
-            if self._shut_down:
-                return None
-            # Download all the header hashes and find the fork point
-            request = full_node_protocol.RequestAllHeaderHashes(tip_block.header_hash)
-            msg = Message("request_all_header_hashes", request)
-            await self.server.send_to_all([msg], NodeType.FULL_NODE)
-            try:
-                phr = self.sync_store.get_potential_hashes_received()
-                assert phr is not None
-                await asyncio.wait_for(
-                    phr.wait(),
-                    timeout=sleep_interval,
-                )
-                break
-            # https://github.com/python/cpython/pull/13528
-            except (concurrent.futures.TimeoutError, asyncio.TimeoutError):
-                total_time_slept += sleep_interval
-                self.log.warning("Did not receive desired header hashes")
 
-        # Finding the fork point allows us to only download headers and blocks from the fork point
-        header_hashes = self.sync_store.get_potential_hashes()
+        request = full_node_protocol.RequestAllHeaderHashes(tip_block.header_hash)
+        result = await send_all_first_reply("request_all_header_hashes", request, nodes)
+
+        all_header_hashes: Optional[AllHeaderHashes] = None
+        if result is not None:
+            all_header_hashes, peer = result
+
+        assert all_header_hashes is not None
+        header_hashes = all_header_hashes.header_hashes
+        self.sync_store.potential_hashes = header_hashes
 
         async with self.blockchain.lock:
             # Lock blockchain so we can copy over the headers without any reorgs
@@ -382,14 +366,7 @@ class FullNode:
         fork_point_hash: bytes32 = header_hashes[fork_point_height]
         self.log.info(f"Fork point: {fork_point_hash} at height {fork_point_height}")
 
-        peers = [
-            con.peer_node_id
-            for id, con in self.server.all_connections.items()
-            if (
-                con.peer_node_id is not None
-                and con.connection_type == NodeType.FULL_NODE
-            )
-        ]
+        peers: List[WSChiaConnection] = list(self.server.full_nodes.values())
 
         self.sync_peers_handler = SyncPeersHandler(
             self.sync_store, peers, fork_point_height, self.blockchain
@@ -412,8 +389,8 @@ class FullNode:
             if block_processor_task.done():
                 break
 
-            cur_peers = [
-                con.peer_node_id
+            cur_peers: List[WSChiaConnection] = [
+                con
                 for id, con in self.server.all_connections.items()
                 if (
                     con.peer_node_id is not None
