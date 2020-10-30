@@ -89,7 +89,7 @@ class TestFullNodeProtocol:
     async def test_request_peers(self, two_nodes, wallet_blocks):
         full_node_1, full_node_2, server_1, server_2 = two_nodes
 
-        await server_2.start_client(PeerInfo("127.0.0.1", uint16(server_1._port)), None)
+        await server_2.start_client(PeerInfo("127.0.0.1", uint16(server_1._port)))
 
         async def have_msgs():
             await full_node_2.full_node.full_node_peers.address_manager.add_to_new_table(
@@ -129,7 +129,7 @@ class TestFullNodeProtocol:
         new_tip_1 = fnp.NewTip(
             blocks[-1].height, blocks[-1].weight, blocks[-1].header_hash
         )
-        msg_1 = await full_node_1.new_tip(new_tip_1, None)
+        msg_1 = await full_node_1.new_tip(new_tip_1)
 
         assert msg_1.data == fnp.RequestBlock(uint32(3), blocks[-1].header_hash)
 
@@ -137,7 +137,7 @@ class TestFullNodeProtocol:
             blocks[2].height, blocks[2].weight, blocks[2].header_hash
         )
 
-        msg_2 = await full_node_1.new_tip(new_tip_2, None)
+        msg_2 = await full_node_1.new_tip(new_tip_2)
         assert msg_2 is None
 
     @pytest.mark.asyncio
@@ -168,11 +168,11 @@ class TestFullNodeProtocol:
             spend_bundle.get_hash(), uint64(100), uint64(100)
         )
 
-        msg = await full_node_1.new_transaction(new_transaction, None)
+        msg = await full_node_1.new_transaction(new_transaction)
         assert msg.data == fnp.RequestTransaction(spend_bundle.get_hash())
 
         respond_transaction_2 = fnp.RespondTransaction(spend_bundle)
-        await full_node_1.respond_transaction(respond_transaction_2, None)
+        await full_node_1.respond_transaction(respond_transaction_2)
 
         program = best_solution_program(spend_bundle)
         aggsig = spend_bundle.aggregated_signature
@@ -186,11 +186,11 @@ class TestFullNodeProtocol:
             transaction_data_at_height=dic_h,
         )
         # Already seen
-        msg = await full_node_1.new_transaction(new_transaction, None)
+        msg = await full_node_1.new_transaction(new_transaction)
         assert msg is None
         # Farm one block
         for block in blocks_new:
-            await full_node_1.respond_block(fnp.RespondBlock(block), None)
+            await full_node_1.respond_block(fnp.RespondBlock(block))
 
         spend_bundles = []
         total_fee = 0
@@ -207,10 +207,10 @@ class TestFullNodeProtocol:
                 500, receiver_puzzlehash, coin_record.coin, fee=fee
             )
             respond_transaction = fnp.RespondTransaction(spend_bundle)
-            await full_node_1.respond_transaction(respond_transaction, None)
+            await full_node_1.respond_transaction(respond_transaction)
 
             request = fnp.RequestTransaction(spend_bundle.get_hash())
-            req = await full_node_1.request_transaction(request, None)
+            req = await full_node_1.request_transaction(request)
             if req.data == fnp.RespondTransaction(spend_bundle):
                 total_fee += fee
                 spend_bundles.append(spend_bundle)
@@ -219,7 +219,7 @@ class TestFullNodeProtocol:
         new_transaction = fnp.NewTransaction(
             token_bytes(32), uint64(1000000), uint64(1)
         )
-        msg = await full_node_1.new_transaction(new_transaction, None)
+        msg = await full_node_1.new_transaction(new_transaction)
         assert msg is None
 
         agg = SpendBundle.aggregate(spend_bundles)
@@ -237,7 +237,7 @@ class TestFullNodeProtocol:
             fees=uint64(total_fee),
         )
         # Farm one block to clear mempool
-        await full_node_1.respond_block(fnp.RespondBlock(blocks_new[-1]), None)
+        await full_node_1.respond_block(fnp.RespondBlock(blocks_new[-1]))
 
     @pytest.mark.asyncio
     async def test_request_respond_transaction(self, two_nodes, wallet_blocks_five):
@@ -246,7 +246,7 @@ class TestFullNodeProtocol:
 
         tx_id = token_bytes(32)
         request_transaction = fnp.RequestTransaction(tx_id)
-        msg = await full_node_1.request_transaction(request_transaction, None)
+        msg = await full_node_1.request_transaction(request_transaction)
         assert msg is not None
         assert msg.data == fnp.RejectTransactionRequest(tx_id)
 
@@ -258,10 +258,10 @@ class TestFullNodeProtocol:
         )
         assert spend_bundle is not None
         respond_transaction = fnp.RespondTransaction(spend_bundle)
-        await full_node_1.respond_transaction(respond_transaction, None)
+        await full_node_1.respond_transaction(respond_transaction)
 
         request_transaction = fnp.RequestTransaction(spend_bundle.get_hash())
-        msg = await full_node_1.request_transaction(request_transaction, None)
+        msg = await full_node_1.request_transaction(request_transaction)
         assert msg is not None
         assert msg.data == fnp.RespondTransaction(spend_bundle)
 
@@ -272,7 +272,7 @@ class TestFullNodeProtocol:
 
         tx_id = token_bytes(32)
         request_transaction = fnp.RequestTransaction(tx_id)
-        msg = await full_node_1.request_transaction(request_transaction, None)
+        msg = await full_node_1.request_transaction(request_transaction)
         assert msg is not None
         assert msg.data == fnp.RejectTransactionRequest(tx_id)
 
@@ -286,7 +286,7 @@ class TestFullNodeProtocol:
         )
         assert spend_bundle is not None
         respond_transaction = fnp.RespondTransaction(spend_bundle)
-        msg = await full_node_1.respond_transaction(respond_transaction, None)
+        msg = await full_node_1.respond_transaction(respond_transaction)
         assert msg is None
 
     @pytest.mark.asyncio
@@ -297,7 +297,7 @@ class TestFullNodeProtocol:
         no_unf_block = fnp.NewProofOfTime(
             uint32(5), bytes(32 * [1]), uint64(124512), uint8(2)
         )
-        msg = await full_node_1.new_proof_of_time(no_unf_block, None)
+        msg = await full_node_1.new_proof_of_time(no_unf_block)
         assert msg is None
 
         blocks = await get_block_path(full_node_1.full_node)
@@ -318,7 +318,7 @@ class TestFullNodeProtocol:
             blocks_new[-1].transactions_filter,
         )
         unf_block_req = fnp.RespondUnfinishedBlock(unf_block)
-        await full_node_1.respond_unfinished_block(unf_block_req, None)
+        await full_node_1.respond_unfinished_block(unf_block_req)
 
         dont_have = fnp.NewProofOfTime(
             unf_block.height,
@@ -326,9 +326,9 @@ class TestFullNodeProtocol:
             blocks_new[-1].proof_of_time.number_of_iterations,
             uint8(2),
         )
-        msg = await full_node_1.new_proof_of_time(dont_have, None)
+        msg = await full_node_1.new_proof_of_time(dont_have)
         assert msg is not None
-        await full_node_1.respond_block(fnp.RespondBlock(blocks_new[-1]), None)
+        await full_node_1.respond_block(fnp.RespondBlock(blocks_new[-1]))
         assert blocks_new[-1].proof_of_time is not None
         already_have = fnp.NewProofOfTime(
             unf_block.height,
@@ -336,7 +336,7 @@ class TestFullNodeProtocol:
             blocks_new[-1].proof_of_time.number_of_iterations,
             blocks_new[-1].proof_of_time.witness_type,
         )
-        msg = await full_node_1.new_proof_of_time(already_have, None)
+        msg = await full_node_1.new_proof_of_time(already_have)
         assert msg is None
 
     """
