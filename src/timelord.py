@@ -276,7 +276,6 @@ class Timelord:
             log.warning(f"{type(e)} {e}")
             async with self.lock:
                 if challenge_hash not in self.done_discriminants:
-                    breakpoint()
                     self.done_discriminants.append(challenge_hash)
                 if self.sanitizer_mode:
                     if challenge_hash in self.pending_iters:

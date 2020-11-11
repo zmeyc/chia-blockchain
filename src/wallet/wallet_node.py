@@ -661,7 +661,9 @@ class WalletNode:
                     except asyncio.CancelledError:
                         pass
                     total_time_slept += sleep_interval
-                    self.log.info("Did not receive desired headers")
+                    self.log.info(
+                        f"Did not receive desired headers {height_checkpoint}"
+                    )
                     continue
 
                 # Succesfully downloaded header. Now confirm it's added to chain.
