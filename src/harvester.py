@@ -5,15 +5,13 @@ from typing import Dict, Optional, Tuple, List, Callable, Set
 import time
 import concurrent
 
-from blspy import G1Element, G2Element, AugSchemeMPL
+from blspy import G1Element
 
 from chiapos import DiskProver
 from src.consensus.constants import ConsensusConstants
 from src.protocols import harvester_protocol
-from src.server.outbound_message import Delivery, Message, NodeType, OutboundMessage
-from src.server.ws_connection import WSChiaConnection
+from src.server.outbound_message import Message
 from src.types.proof_of_space import ProofOfSpace
-from src.util.api_decorators import api_request
 from src.util.ints import uint8
 from src.plotting.plot_tools import (
     load_plots,

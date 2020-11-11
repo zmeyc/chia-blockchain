@@ -1,7 +1,6 @@
 from src.full_node.full_node import FullNode
 from typing import Callable, List, Optional, Dict
 
-from src.full_node.full_node_api import FullNodeAPI
 from src.types.header import Header
 from src.types.full_block import FullBlock
 from src.util.ints import uint32, uint64, uint128

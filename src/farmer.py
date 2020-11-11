@@ -1,8 +1,7 @@
-import asyncio
 import logging
 from typing import Dict, List, Set, Optional, Callable, Tuple
 
-from blspy import G1Element, G2Element, AugSchemeMPL
+from blspy import G1Element
 
 from src.server.server import ChiaServer
 from src.server.ws_connection import WSChiaConnection
@@ -11,11 +10,9 @@ from src.util.keychain import Keychain
 from src.consensus.constants import ConsensusConstants
 from src.consensus.pot_iterations import calculate_iterations_quality
 from src.protocols import farmer_protocol, harvester_protocol
-from src.server.outbound_message import Delivery, Message, NodeType, OutboundMessage
+from src.server.outbound_message import Message, NodeType
 from src.types.proof_of_space import ProofOfSpace
 from src.types.sized_bytes import bytes32
-from src.types.pool_target import PoolTarget
-from src.util.api_decorators import api_request
 from src.util.ints import uint32, uint64, uint128, uint8
 from src.wallet.derive_keys import master_sk_to_farmer_sk, master_sk_to_pool_sk
 from src.util.chech32 import decode_puzzle_hash

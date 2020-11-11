@@ -8,12 +8,11 @@ from typing import Dict, List, Optional, Tuple
 
 from chiavdf import create_discriminant
 from src.protocols import timelord_protocol
-from src.server.outbound_message import Delivery, Message, NodeType, OutboundMessage
+from src.server.outbound_message import Message, NodeType
 from src.server.server import ChiaServer
 from src.types.classgroup import ClassgroupElement
 from src.types.proof_of_time import ProofOfTime
 from src.types.sized_bytes import bytes32
-from src.util.api_decorators import api_request
 from src.util.ints import uint8, uint64, int512, uint128
 
 log = logging.getLogger(__name__)
