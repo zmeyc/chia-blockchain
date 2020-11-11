@@ -1093,7 +1093,7 @@ class WalletStateManager:
         self,
         all_proof_hashes: List[Tuple[bytes32, Optional[uint64], Optional[uint64]]],
         heights: List[uint32],
-        cached_blocks: Dict[bytes32, Tuple[BlockRecord, HeaderBlock, Optional[bytes]]],
+        cached_blocks: Dict[bytes32, Tuple[BlockRecord, HeaderBlock, bytes]],
         potential_header_hashes: Dict[uint32, bytes32],
     ) -> bool:
         """

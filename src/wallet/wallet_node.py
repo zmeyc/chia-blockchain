@@ -453,8 +453,9 @@ class WalletNode:
             difficulty_weights: List[uint64] = []
             difficulty: uint64 = uint64(0)
             for i in range(tip_height):
-                if self.proof_hashes[i][1] is not None:
-                    difficulty = self.proof_hashes[i][1]
+                df = self.proof_hashes[i][1]
+                if df is not None:
+                    difficulty = df
                 if i > (fork_point_height + 1) and i % 2 == 1:  # Only add odd heights
                     heights.append(uint32(i))
                     difficulty_weights.append(difficulty)
