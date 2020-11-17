@@ -259,7 +259,7 @@ def handler(args, parser):
 
     if command == "create":
         json_tx = args.cmd_args[0]
-        create_unsigned_tx_from_json(json_tx)
+        create_unsigned_tx_from_json(args.json_tx)
     elif command == "verify":
         print()
     elif command == "sign":
@@ -272,7 +272,7 @@ def handler(args, parser):
         debug_spend_bundle(signed_sb)
     elif command == "push":
         json_tx = args.cmd_args[0]
-        if args.json_tx is None:
+        if json_tx is None:
             print("create command is missing json_tx")
             help_message()
             parser.exit(1)
