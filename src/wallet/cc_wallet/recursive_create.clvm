@@ -1,0 +1,11 @@
+(mod (amount innerhash)
+
+  (defun my_func (amount output innerhash)
+    (if amount
+      (my_func (- amount 1) (c (list 51 innerhash amount) output) innerhash)
+      output
+    )
+  )
+
+  (my_func amount () innerhash)
+)

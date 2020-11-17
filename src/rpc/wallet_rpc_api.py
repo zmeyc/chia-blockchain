@@ -30,6 +30,7 @@ from src.wallet.cc_wallet.cc_wallet import CCWallet
 from src.wallet.wallet_info import WalletInfo
 from src.wallet.wallet_node import WalletNode
 from src.wallet.transaction_record import TransactionRecord
+from src.types.spend_bundle import SpendBundle
 
 # Timeout for response from wallet/full node for sending a transaction
 TIMEOUT = 30
@@ -66,6 +67,8 @@ class WalletRpcApi:
             "/get_transactions": self.get_transactions,
             "/get_next_address": self.get_next_address,
             "/send_transaction": self.send_transaction,
+            "/sign_spend_bundle": self.sign_spend_bundle,
+            "/push_spend_bundle": self.push_spend_bundle,
             "/create_backup": self.create_backup,
             "/get_spendable_coins": self.get_spendable_coins,
             # Coloured coins and trading
@@ -512,7 +515,50 @@ class WalletRpcApi:
         wallet = self.service.wallet_state_manager.wallets[wallet_id]
         spendable_balance = await wallet.get_spendable_balance()
         coins = await wallet.select_coins(spendable_balance)
-        return {"success": True, "coins": list(coins)}
+        coins_with_puz_and_pk = []
+        for coin in coins:
+            pubkey, puzzle = await wallet.pubkey_and_puzzle_for_puzzle_hash(coin.puzzle_hash)
+            c = {
+                "parent_coin_info": coin.parent_coin_info,
+                "puzzle_hash": coin.puzzle_hash,
+                "amount": coin.amount,
+                "pubkey": pubkey,
+                "puzzle": bytes(puzzle).hex()
+            }
+            coins_with_puz_and_pk.append(c)
+        return {"success": True, "coins": coins_with_puz_and_pk}
+
+    async def push_spend_bundle(self, request):
+        wallet = self.service.wallet_state_manager.wallets[1]
+        spend_bundle = SpendBundle.from_bytes(bytes.fromhex(request["spend_bundle"]))
+        now = uint64(int(time.time()))
+        add_list = list(spend_bundle.additions())
+        rem_list = list(spend_bundle.removals())
+        amount_out = sum(_.amount for _ in add_list)
+        tx_record = TransactionRecord(
+            confirmed_at_index=uint32(0),
+            created_at_time=now,
+            to_puzzle_hash=add_list.copy().pop().puzzle_hash,
+            amount=uint64(amount_out),
+            fee_amount=uint64(spend_bundle.fees()),
+            incoming=False,
+            confirmed=False,
+            sent=uint32(0),
+            spend_bundle=spend_bundle,
+            additions=add_list,
+            removals=rem_list,
+            wallet_id=self.id(),
+            sent_to=[],
+            trade_id=None,
+        )
+        await wallet.push_transaction(tx_record)
+        return {"success": True}
+
+    async def sign_spend_bundle(self, request):
+        wallet = self.service.wallet_state_manager.wallets[1]
+        spend_bundle = SpendBundle.from_bytes(bytes.fromhex(request["spend_bundle"]))
+        signed_spend_bundle = await wallet.sign_transaction(spend_bundle.coin_solutions, False)
+        return {"success": True, "spend_bundle": bytes(signed_spend_bundle).hex()}
 
     ##########################################################################################
     # Coloured Coins and Trading

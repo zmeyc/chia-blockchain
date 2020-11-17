@@ -11,6 +11,7 @@ from src.util.condition_tools import (
 async def sign_coin_solutions(
     coin_solutions: List[CoinSolution],
     secret_key_for_public_key_f: Callable[[bytes], Optional[PrivateKey]],
+    require_all: bool = True,
 ) -> SpendBundle:
     signatures = []
 
@@ -29,8 +30,11 @@ async def sign_coin_solutions(
         ):
             secret_key = secret_key_for_public_key_f(_)
             if secret_key is None:
-                e_msg = f"no secret key for {_}"
-                raise ValueError(e_msg)
+                if require_all:
+                    e_msg = f"no secret key for {_}"
+                    raise ValueError(e_msg)
+                else:
+                    continue
             assert bytes(secret_key.get_g1()) == bytes(_)
             signature = AugSchemeMPL.sign(secret_key, msg)
             signatures.append(signature)

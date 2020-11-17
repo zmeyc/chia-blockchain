@@ -6,6 +6,7 @@ from src.types.sized_bytes import bytes32
 from src.util.streamable import Streamable, streamable
 from .coin_solution import CoinSolution
 from blspy import G2Element, AugSchemeMPL
+from src.util.chain_utils import check_aggsig
 
 
 @dataclass(frozen=True)
@@ -80,3 +81,6 @@ class SpendBundle(Streamable):
             result.append(add)
 
         return result
+
+    def aggsig(self):
+        return check_aggsig(self)

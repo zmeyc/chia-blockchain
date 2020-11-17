@@ -136,9 +136,36 @@ def debug_spend_bundle(spend_bundle: SpendBundle) -> None:
         validates = AugSchemeMPL.aggregate_verify(
             pks, msgs, spend_bundle.aggregated_signature
         )
+    else:
+        validates = True
     print(f"aggregated signature check pass: {validates}")
     print()
     print("=" * 80)
+
+
+def check_spendbundle_aggsig(spend_bundle):
+    pks = []
+    msgs = []
+    for coin_solution in spend_bundle.coin_solutions:
+        coin, solution_pair = coin_solution.coin, Program.to(coin_solution.solution)
+        puzzle_reveal = solution_pair.first()
+        solution = solution_pair.rest().first()
+        error, conditions, cost = conditions_dict_for_solution(
+            Program.to([puzzle_reveal, solution])
+        )
+        if error:
+            print(f"*** error {error}")
+        elif conditions is not None:
+            for pk, m in pkm_pairs_for_conditions_dict(conditions, coin.name()):
+                pks.append(pk)
+                msgs.append(m)
+    if len(msgs) > 0:
+        validates = AugSchemeMPL.aggregate_verify(
+            pks, msgs, spend_bundle.aggregated_signature
+        )
+    else:
+        validates = True
+    return validates
 
 
 def solution_for_pay_to_any(puzzle_hash_amount_pairs: Tuple[bytes32, int]) -> Program:

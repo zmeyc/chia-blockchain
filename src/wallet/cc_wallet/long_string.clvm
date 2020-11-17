@@ -1,0 +1,11 @@
+(mod (amount)
+
+  (defun string_expand (my_str amount)
+    (if amount
+      (concat my_str (string_expand my_str (- amount 1)) (string_expand my_str (- amount 1)))
+      my_str
+    )
+  )
+
+  (list (list 51 (sha256 (string_expand "hello" amount)) amount))
+)

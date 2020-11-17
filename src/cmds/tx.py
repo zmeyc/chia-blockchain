@@ -84,15 +84,15 @@ def create_unsigned_transaction(
     assert len(inputs) > 0
     # We treat the first coin as the origin
     # For simplicity, only the origin coin creates outputs
-    origin = inputs.pop()
+    input_value = sum([coin.amount for coin in coins])
+    origin = coins.pop()
     outputs = []
-    input_value = sum([i["coin"].amount for i in inputs]) + origin["coin"].amount
     sent_value = 0
     if spend_requests is not None:
         sent_value = sum([req.amount for req in spend_requests])
         for request in spend_requests:
             outputs.append({"puzzlehash": request.puzzle_hash, "amount": request.amount})
-    if validate and sent_value != input_value:
+    if validate and sent_value > input_value:
         raise (
             ValueError(
                 f"input amounts ({input_value}) do not equal outputs ({sent_value})"
@@ -122,7 +122,7 @@ def create_unsigned_transaction(
     return spends
 
 
-def create_unsigned_tx_from_json(json_tx):
+def create_unsigned_tx_from_json(json_tx) -> SpendBundle:
     j = json.loads(json_tx)
     spends = []
     for s in j["spends"]:
@@ -161,6 +161,12 @@ def create_unsigned_tx_from_json(json_tx):
 
     spend_bundle = SpendBundle(spends, G2Element.infinity())
     debug_spend_bundle(spend_bundle)
+    breakpoint()
+    test = bytes(spend_bundle).hex()
+    test_2 = SpendBundle.from_bytes(bytes.fromhex(test))
+    debug_spend_bundle(test_2)
+    breakpoint()
+    return spend_bundle
     # output = { "spends": spends }
 
     # TODO: Object of type CoinSolution is not JSON serializable
@@ -207,15 +213,20 @@ def make_parser(parser):
     parser.print_help = lambda self=parser: help_message()
 
 
-async def push_tx(args):
-    print("push_tx", args)
+async def push_spendbundle(spend_bundle: SpendBundle):
+    wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
+    await wrpc.push_spend_bundle(bytes(spend_bundle).hex())
     return
 
 
 async def view_coins(args):
     wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
     coins = await wrpc.get_spendable_coins(1)
-    print(coins)
+    print()
+    for coin in coins:
+        print(coin)
+        print(binutils.disassemble(Program.from_bytes(bytes.fromhex(coin["puzzle"]))))
+        print()
     wrpc.close()
     return
 
@@ -224,6 +235,14 @@ def fail_cmd(parser, msg):
             print(f"\n{msg}")
             help_message()
             parser.exit(1)
+
+
+async def sign_spendbundle(spend_bundle) -> SpendBundle:
+    wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
+    breakpoint()
+    signed_spend_bundle: str = await wrpc.sign_spend_bundle(bytes(spend_bundle).hex())
+    debug_spend_bundle(SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle)))
+    return SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle))
 
 
 def handler(args, parser):
@@ -244,10 +263,22 @@ def handler(args, parser):
     elif command == "verify":
         print()
     elif command == "sign":
-        print()
+        if args.json_tx is None:
+            print("create command is missing json_tx")
+            help_message()
+            parser.exit(1)
+        spend_bundle = create_unsigned_tx_from_json(args.json_tx)
+        signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(sign_spendbundle(spend_bundle))
+        debug_spend_bundle(signed_sb)
     elif command == "push":
         json_tx = args.cmd_args[0]
-        parser.exit(asyncio.get_event_loop().run_until_complete(push_tx(json_tx)))
+        if args.json_tx is None:
+            print("create command is missing json_tx")
+            help_message()
+            parser.exit(1)
+        spend_bundle = create_unsigned_tx_from_json(args.json_tx)
+        signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(sign_spendbundle(args, spend_bundle))
+        return asyncio.get_event_loop().run_until_complete(push_spendbundle(args, signed_sb))
     elif command == "encode":
         print()
     elif command == "decode":

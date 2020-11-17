@@ -15,23 +15,23 @@
         "spend_requests": [
             {
                 "puzzle_hash": "3766a7e30d9db8bfc53e57a18e7b903877fd5f00c08e728de1abcd997de4cb87",
-                "amount": 4
+                "amount": 10000000000000
             },
             {
                 "puzzle_hash": "f6579bfc8c3a1bf65591a3128e3231d24a73a1daa055190b5953db783f3cb1bc",
-                "amount": 5
+                "amount": 9000000000000
             }
         ]
-    },
-    {
-      "input_coin": {
-          "parent_id": "de33fafebc3251e4919b8d6ae120f1d271af1ac5155ba6afa674f9af4767a42f",
-          "puzzle_hash": "3766a7e30d9db8bfc53e57a18e7b903877fd5f00c08e728de1abcd997de4cb87",
-          "amount": 4
       },
-      "puzzle_reveal": "((c (i (= (sha256 2) (q 0x2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824)) (q (c (c (q 51) (c 5 (c (q 100) (q ())))) (q ()))) (q (x 'wrong password'))) 1))",
-      "solution": "('hello' 0xc4841b0e3c08faf750ee5d0024be40484b082eb5ff6c484312c5431bf1dc2785)"
-    }
+      {
+        "input_coin": {
+            "parent_id": "de33fafebc3251e4919b8d6ae120f1d271af1ac5155ba6afa674f9af4767a42f",
+            "puzzle_hash": "3766a7e30d9db8bfc53e57a18e7b903877fd5f00c08e728de1abcd997de4cb87",
+            "amount": 9000000000000
+        },
+        "puzzle_reveal": "((c (i (= (sha256 2) (q 0x2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824)) (q (c (c (q 51) (c 5 (c (q 100) (q ())))) (q ()))) (q (x 'wrong password'))) 1))",
+        "solution": "('hello' 0xc4841b0e3c08faf750ee5d0024be40484b082eb5ff6c484312c5431bf1dc2785)"
+      }
   ]
 
 }

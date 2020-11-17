@@ -1,0 +1,16 @@
+(mod amount
+  (defun func (number output)
+    (if number
+      (if (> number 58)
+        (func (- number 1) (c (list number (sha256 (q "hello"))) output))
+        (if (> 49 number)
+          (func (- number 1) (c (list number (sha256 (q "hello"))) output))
+          (func (- number 1) output)
+        )
+      )
+      output
+    )
+  )
+
+  (func amount 0)
+)
