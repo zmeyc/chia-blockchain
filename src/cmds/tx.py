@@ -160,12 +160,6 @@ def create_unsigned_tx_from_json(json_tx) -> SpendBundle:
             )
 
     spend_bundle = SpendBundle(spends, G2Element.infinity())
-    debug_spend_bundle(spend_bundle)
-    breakpoint()
-    test = bytes(spend_bundle).hex()
-    test_2 = SpendBundle.from_bytes(bytes.fromhex(test))
-    debug_spend_bundle(test_2)
-    breakpoint()
     return spend_bundle
     # output = { "spends": spends }
 
@@ -216,6 +210,7 @@ def make_parser(parser):
 async def push_spendbundle(spend_bundle: SpendBundle):
     wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
     await wrpc.push_spend_bundle(bytes(spend_bundle).hex())
+    wrpc.close()
     return
 
 
@@ -258,7 +253,8 @@ def handler(args, parser):
 
     if command == "create":
         json_tx = args.cmd_args[0]
-        create_unsigned_tx_from_json(json_tx)
+        spend_bundle = create_unsigned_tx_from_json(json_tx)
+        debug_spend_bundle(spend_bundle)
     elif command == "verify":
         print()
     elif command == "sign":
@@ -268,13 +264,10 @@ def handler(args, parser):
         debug_spend_bundle(signed_sb)
     elif command == "push":
         json_tx = args.cmd_args[0]
-        if json_tx is None:
-            print("create command is missing json_tx")
-            help_message()
-            parser.exit(1)
-        spend_bundle = create_unsigned_tx_from_json(args.json_tx)
-        signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(sign_spendbundle(args, spend_bundle))
-        return asyncio.get_event_loop().run_until_complete(push_spendbundle(args, signed_sb))
+        spend_bundle = create_unsigned_tx_from_json(json_tx)
+        signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(sign_spendbundle(spend_bundle))
+        debug_spend_bundle(signed_sb)
+        return asyncio.get_event_loop().run_until_complete(push_spendbundle(signed_sb))
     elif command == "encode":
         print()
     elif command == "decode":

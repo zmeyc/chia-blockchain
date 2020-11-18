@@ -547,7 +547,7 @@ class WalletRpcApi:
             spend_bundle=spend_bundle,
             additions=add_list,
             removals=rem_list,
-            wallet_id=self.id(),
+            wallet_id=1,
             sent_to=[],
             trade_id=None,
         )
