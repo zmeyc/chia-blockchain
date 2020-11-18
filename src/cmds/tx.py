@@ -239,7 +239,6 @@ def fail_cmd(parser, msg):
 
 async def sign_spendbundle(spend_bundle) -> SpendBundle:
     wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
-    breakpoint()
     signed_spend_bundle: str = await wrpc.sign_spend_bundle(bytes(spend_bundle).hex())
     debug_spend_bundle(SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle)))
     return SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle))
@@ -259,15 +258,12 @@ def handler(args, parser):
 
     if command == "create":
         json_tx = args.cmd_args[0]
-        create_unsigned_tx_from_json(args.json_tx)
+        create_unsigned_tx_from_json(json_tx)
     elif command == "verify":
         print()
     elif command == "sign":
-        if args.json_tx is None:
-            print("create command is missing json_tx")
-            help_message()
-            parser.exit(1)
-        spend_bundle = create_unsigned_tx_from_json(args.json_tx)
+        json_tx = args.cmd_args[0]
+        spend_bundle = create_unsigned_tx_from_json(json_tx)
         signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(sign_spendbundle(spend_bundle))
         debug_spend_bundle(signed_sb)
     elif command == "push":
