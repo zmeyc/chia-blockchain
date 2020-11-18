@@ -84,18 +84,18 @@ def create_unsigned_transaction(
     assert len(inputs) > 0
     # We treat the first coin as the origin
     # For simplicity, only the origin coin creates outputs
-    input_value = sum([coin.amount for coin in coins])
-    origin = coins.pop()
+    origin = inputs.pop()
     outputs = []
+    input_value = sum([i["coin"].amount for i in inputs]) + origin["coin"].amount
     sent_value = 0
     if spend_requests is not None:
         sent_value = sum([req.amount for req in spend_requests])
         for request in spend_requests:
             outputs.append({"puzzlehash": request.puzzle_hash, "amount": request.amount})
-    if validate and sent_value > input_value:
+    if validate and sent_value >= input_value:
         raise (
             ValueError(
-                f"input amounts ({input_value}) do not equal outputs ({sent_value})"
+                f"input amounts ({input_value}) are less than outputs ({sent_value})"
             )
         )
 

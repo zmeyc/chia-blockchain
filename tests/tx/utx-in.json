@@ -4,11 +4,11 @@
       {
           "input_coins": [
             {
-                "pubkey": "b8250e03370173410e406a227e4ae0987c5d3d1bd1ede7d9c38aa118c5f81fdaa84622180b6519c1cce2a247e4c604cb",
+                "pubkey": "a6a698e4328064569cbed4e63d5690a6d98c4cf4ae0ac6b9b2425a54d65eabe05052be106b6fc55d41685b4f5ff09187",
                 "coin": {
-                    "parent_id": "61f3b7016bf1ecc3987b8805207e79362e4de8026682e149107999b779426e3a",
-                    "puzzle_hash": "f6579bfc8c3a1bf65591a3128e3231d24a73a1daa055190b5953db783f3cb1bc",
-                    "amount": 9
+                    "parent_id": "b6ebbd2b7f392a4894f2314fa27e967f85683b719989243d30e8af125b15166e",
+                    "puzzle_hash": "086eb3d80068a363523dd110c8880cf76bea2ab22acaaf8d364745e0da8e2e64",
+                    "amount": 20000000000000
                 }
             }
         ],
@@ -18,7 +18,7 @@
                 "amount": 10000000000000
             },
             {
-                "puzzle_hash": "f6579bfc8c3a1bf65591a3128e3231d24a73a1daa055190b5953db783f3cb1bc",
+                "puzzle_hash": "086eb3d80068a363523dd110c8880cf76bea2ab22acaaf8d364745e0da8e2e64",
                 "amount": 9000000000000
             }
         ]
