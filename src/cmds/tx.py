@@ -4,13 +4,14 @@ The tx command is a tool to create "raw" transactions
 create_unsigned_transaction - take a list of transaction creation descriptions, and produce their SpendBundles, optionally verifying them.
 
 """
-from typing import List, Set
+from typing import List
 
 # tx command imports
 import json
 import asyncio
 from clvm_tools import binutils
 from src.util.byte_types import hexstr_to_bytes
+from src.util.chech32 import decode_puzzle_hash
 
 # blspy
 from blspy import G1Element, G2Element
@@ -177,6 +178,7 @@ command_list = [
     "encode",
     "decode",
     "view-coins",
+    "get-address",
 ]
 
 
@@ -217,6 +219,14 @@ def make_parser(parser):
     parser.print_help = lambda self=parser: help_message()
 
 
+async def get_new_address():
+    wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
+    address = await wrpc.get_next_address(1)
+    print(f"Chech32 encoded: {address}")
+    print(f"Puzzlehash: {decode_puzzle_hash(address).hex()}")
+    wrpc.close()
+
+
 async def push_spendbundle(spend_bundle: SpendBundle):
     wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
     await wrpc.push_spend_bundle(bytes(spend_bundle).hex())
@@ -237,9 +247,9 @@ async def view_coins(args):
 
 
 def fail_cmd(parser, msg):
-            print(f"\n{msg}")
-            help_message()
-            parser.exit(1)
+    print(f"\n{msg}")
+    help_message()
+    parser.exit(1)
 
 
 async def sign_spendbundle(spend_bundle) -> SpendBundle:
