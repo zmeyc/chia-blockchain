@@ -301,6 +301,8 @@ def handler(args, parser):
         parser.exit(
             asyncio.get_event_loop().run_until_complete(view_coins(args.cmd_args))
         )
+    elif command == "get-address":
+        asyncio.get_event_loop().run_until_complete(get_new_address())
     else:
         print(f"command '{command}' is not recognised")
         parser.exit(1)
