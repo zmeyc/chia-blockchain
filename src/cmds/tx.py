@@ -93,7 +93,9 @@ def create_unsigned_transaction(
     if spend_requests is not None:
         sent_value = sum([req.amount for req in spend_requests])
         for request in spend_requests:
-            outputs.append({"puzzlehash": request.puzzle_hash, "amount": request.amount})
+            outputs.append(
+                {"puzzlehash": request.puzzle_hash, "amount": request.amount}
+            )
     if validate and sent_value >= input_value:
         raise (
             ValueError(
@@ -136,9 +138,9 @@ def create_unsigned_tx_from_json(json_tx) -> SpendBundle:
                     "coin": Coin(
                         hexstr_to_bytes(i["coin"]["parent_id"]),
                         hexstr_to_bytes(i["coin"]["puzzle_hash"]),
-                        i["coin"]["amount"]
+                        i["coin"]["amount"],
                     ),
-                    "pubkey": G1Element.from_bytes(hexstr_to_bytes(i["pubkey"]))
+                    "pubkey": G1Element.from_bytes(hexstr_to_bytes(i["pubkey"])),
                 }
                 for i in input_coins_json
             ]
@@ -207,14 +209,9 @@ def decode_spendbundle(spend_bundle_bytes: str):
 
 def make_parser(parser):
     parser.add_argument(
-        "command",
-        help=f"Command can be any one of {command_list}",
-        type=str
+        "command", help=f"Command can be any one of {command_list}", type=str
     )
-    parser.add_argument(
-        "cmd_args",
-        nargs="*"
-    )
+    parser.add_argument("cmd_args", nargs="*")
 
     parser.set_defaults(function=handler)
     parser.print_help = lambda self=parser: help_message()
@@ -282,12 +279,16 @@ def handler(args, parser):
     elif command == "sign":
         json_tx = args.cmd_args[0]
         spend_bundle = create_unsigned_tx_from_json(json_tx)
-        signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(sign_spendbundle(spend_bundle))
+        signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(
+            sign_spendbundle(spend_bundle)
+        )
         debug_spend_bundle(signed_sb)
     elif command == "push":
         json_tx = args.cmd_args[0]
         spend_bundle = create_unsigned_tx_from_json(json_tx)
-        signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(sign_spendbundle(spend_bundle))
+        signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(
+            sign_spendbundle(spend_bundle)
+        )
         debug_spend_bundle(signed_sb)
         return asyncio.get_event_loop().run_until_complete(push_spendbundle(signed_sb))
     elif command == "encode":
@@ -297,7 +298,9 @@ def handler(args, parser):
         debug_spend_bundle(sb)
         print(sb)
     elif command == "view-coins":
-        parser.exit(asyncio.get_event_loop().run_until_complete(view_coins(args.cmd_args)))
+        parser.exit(
+            asyncio.get_event_loop().run_until_complete(view_coins(args.cmd_args))
+        )
     else:
         print(f"command '{command}' is not recognised")
         parser.exit(1)

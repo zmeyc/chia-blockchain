@@ -6,7 +6,7 @@ from src.types.program import Program
 from src.util.condition_tools import (
     created_outputs_for_conditions_dict,
     conditions_dict_for_solution,
-    pkm_pairs_for_conditions_dict
+    pkm_pairs_for_conditions_dict,
 )
 
 

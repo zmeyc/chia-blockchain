@@ -11,7 +11,7 @@ from src.types.program import Program
 from src.types.sized_bytes import bytes32
 from src.types.spend_bundle import CoinSolution, SpendBundle
 from src.util.ints import uint64
-from src.wallet.cc_wallet.debug_spend_bundle import debug_spend_bundle
+from src.util.debug_spend_bundle import debug_spend_bundle
 from src.wallet.cc_wallet.cc_utils import (
     cc_puzzle_for_inner_puzzle,
     cc_puzzle_hash_for_inner_puzzle_hash,

@@ -517,13 +517,15 @@ class WalletRpcApi:
         coins = await wallet.select_coins(spendable_balance)
         coins_with_puz_and_pk = []
         for coin in coins:
-            pubkey, puzzle = await wallet.pubkey_and_puzzle_for_puzzle_hash(coin.puzzle_hash)
+            pubkey, puzzle = await wallet.pubkey_and_puzzle_for_puzzle_hash(
+                coin.puzzle_hash
+            )
             c = {
                 "parent_coin_info": coin.parent_coin_info,
                 "puzzle_hash": coin.puzzle_hash,
                 "amount": coin.amount,
                 "pubkey": pubkey,
-                "puzzle": bytes(puzzle).hex()
+                "puzzle": bytes(puzzle).hex(),
             }
             coins_with_puz_and_pk.append(c)
         return {"success": True, "coins": coins_with_puz_and_pk}
@@ -557,7 +559,9 @@ class WalletRpcApi:
     async def sign_spend_bundle(self, request):
         wallet = self.service.wallet_state_manager.wallets[1]
         spend_bundle = SpendBundle.from_bytes(bytes.fromhex(request["spend_bundle"]))
-        signed_spend_bundle = await wallet.sign_transaction(spend_bundle.coin_solutions, False)
+        signed_spend_bundle = await wallet.sign_transaction(
+            spend_bundle.coin_solutions, False
+        )
         return {"success": True, "spend_bundle": bytes(signed_spend_bundle).hex()}
 
     ##########################################################################################

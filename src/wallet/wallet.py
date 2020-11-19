@@ -139,7 +139,9 @@ class Wallet:
         public_key = await self.hack_populate_secret_key_for_puzzle_hash(puzzle_hash)
         return puzzle_for_pk(bytes(public_key))
 
-    async def pubkey_and_puzzle_for_puzzle_hash(self, puzzle_hash: bytes32) -> Tuple[G1Element, Program]:
+    async def pubkey_and_puzzle_for_puzzle_hash(
+        self, puzzle_hash: bytes32
+    ) -> Tuple[G1Element, Program]:
         public_key = await self.hack_populate_secret_key_for_puzzle_hash(puzzle_hash)
         return public_key, puzzle_for_pk(bytes(public_key))
 
@@ -286,7 +288,9 @@ class Wallet:
         self.log.info(f"Spends is {spends}")
         return spends
 
-    async def sign_transaction(self, coin_solutions: List[CoinSolution], require_all: bool = True) -> SpendBundle:
+    async def sign_transaction(
+        self, coin_solutions: List[CoinSolution], require_all: bool = True
+    ) -> SpendBundle:
         return await sign_coin_solutions(
             coin_solutions, self.secret_key_store.secret_key_for_public_key, require_all
         )

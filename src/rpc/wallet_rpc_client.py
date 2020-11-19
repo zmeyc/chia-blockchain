@@ -147,16 +147,17 @@ class WalletRpcClient(RpcClient):
         )
 
     async def get_spendable_coins(self, wallet_id):
-        return (await self.fetch(
-            "get_spendable_coins",
-            {"wallet_id": wallet_id}
-        ))["coins"]
+        return (await self.fetch("get_spendable_coins", {"wallet_id": wallet_id}))[
+            "coins"
+        ]
 
     async def push_spend_bundle(self, spend_bundle: str):
-        return (await self.fetch("push_spend_bundle", {"spend_bundle": spend_bundle}))
+        return await self.fetch("push_spend_bundle", {"spend_bundle": spend_bundle})
 
     async def sign_spend_bundle(self, spend_bundle: str):
-        return (await self.fetch("sign_spend_bundle", {"spend_bundle": spend_bundle}))["spend_bundle"]
+        return (await self.fetch("sign_spend_bundle", {"spend_bundle": spend_bundle}))[
+            "spend_bundle"
+        ]
 
 
 # TODO: add APIs for coloured coins and RL wallet
