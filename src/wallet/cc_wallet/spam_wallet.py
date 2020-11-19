@@ -4,7 +4,6 @@ import time
 
 from typing import Dict, Optional, List, Any, Set
 from blspy import G2Element, AugSchemeMPL
-from clvm_tools import binutils
 from src.types.coin import Coin
 from src.types.coin_solution import CoinSolution
 from src.types.condition_opcodes import ConditionOpcode
@@ -37,8 +36,6 @@ from src.wallet.cc_wallet.cc_utils import (
     CC_MOD,
 )
 from src.wallet.puzzles.genesis_by_coin_id_with_0 import (
-    create_genesis_or_zero_coin_checker,
-    lineage_proof_for_genesis,
     genesis_coin_id_for_genesis_coin_checker,
 )
 from dataclasses import replace
@@ -56,9 +53,7 @@ class CCWallet:
 
     @staticmethod
     async def create_new_cc(
-        wallet_state_manager: Any,
-        wallet: Wallet,
-        amount: uint64,
+        wallet_state_manager: Any, wallet: Wallet, amount: uint64,
     ):
         self = CCWallet()
         self.base_puzzle_program = None
@@ -123,9 +118,7 @@ class CCWallet:
 
     @staticmethod
     async def create_wallet_for_cc(
-        wallet_state_manager: Any,
-        wallet: Wallet,
-        genesis_checker_hex: str,
+        wallet_state_manager: Any, wallet: Wallet, genesis_checker_hex: str,
     ) -> CCWallet:
 
         self = CCWallet()
@@ -151,9 +144,7 @@ class CCWallet:
 
     @staticmethod
     async def create(
-        wallet_state_manager: Any,
-        wallet: Wallet,
-        wallet_info: WalletInfo,
+        wallet_state_manager: Any, wallet: Wallet, wallet_info: WalletInfo,
     ) -> CCWallet:
         self = CCWallet()
 
@@ -409,12 +400,7 @@ class CCWallet:
 
         await self.add_lineage(
             eve_coin.name(),
-            Program.to(
-                (
-                    1,
-                    [eve_coin.parent_coin_info, cc_inner, eve_coin.amount],
-                )
-            ),
+            Program.to((1, [eve_coin.parent_coin_info, cc_inner, eve_coin.amount],)),
         )
         await self.add_lineage(
             eve_coin.parent_coin_info, Program.to((0, [origin.as_list(), 1]))
@@ -467,10 +453,8 @@ class CCWallet:
         return uint64(amount)
 
     async def get_pending_change_balance(self) -> uint64:
-        unconfirmed_tx = (
-            await self.wallet_state_manager.tx_store.get_unconfirmed_for_wallet(
-                self.id()
-            )
+        unconfirmed_tx = await self.wallet_state_manager.tx_store.get_unconfirmed_for_wallet(
+            self.id()
         )
         addition_amount = 0
 
@@ -695,7 +679,8 @@ class CCWallet:
                 amount, cc_inner_hash, uint64(0), origin_id, coins
             )
         )
-        depth_number = 10000  # amount needs to be 50,005,000
+        # amount needs to be 50,005,000
+        # depth_number = 10000
         coin = Coin(origin_id, cc_inner_hash, amount)
         full_solution = Program.to([prog, Program.to([25])])
 

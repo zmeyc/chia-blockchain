@@ -1,20 +1,21 @@
 from src.types.program import Program
 from clvm_tools import binutils
+from typing import List
 
 
 # nicked from stackoverflow
 def diff(li1, li2):
-    return (list(list(set(li1) - set(li2)) + list(set(li2) - set(li1))))
+    return list(list(set(li1) - set(li2)) + list(set(li2) - set(li1)))
 
 
 # Using readlines()
-file = open('src/wallet/cc_wallet/blns.txt', 'r')
+file = open("src/wallet/cc_wallet/blns.txt", "r")
 lines = [line for line in file.readlines() if line.strip()]
 
 count = 0
-breaking_lines_quotation = []
-breaking_lines_apostrophe = []
-breaking_lines_solution = []
+breaking_lines_quotation: List[str] = []
+breaking_lines_apostrophe: List[str] = []
+breaking_lines_solution: List[str] = []
 
 # # Strips the newline character
 # for line in Lines:
@@ -48,7 +49,7 @@ for line in lines:
     if line[0] != "#":
         try:
             prog = Program(binutils.assemble(f"(c 2 (q ()))"))
-            cost_run, sexp = prog.run_with_cost(Program.to([line.encode('utf-8')]))
+            cost_run, sexp = prog.run_with_cost(Program.to([line.encode("utf-8")]))
             print(f"cost: {cost_run}")
             print(f"input: {line}")
             print(f"result: {sexp}")
@@ -59,7 +60,9 @@ for line in lines:
             breaking_lines_solution.append(line)
     else:
         print(line)
-print("==================BREAKING STRINGS WHEN PASSED AS SOLUTION==============================")
+print(
+    "==================BREAKING STRINGS WHEN PASSED AS SOLUTION=============================="
+)
 print(breaking_lines_solution)
 # print("==================BREAKING STRINGS APOSTROPHE=========================")
 # print(breaking_lines_apostrophe)

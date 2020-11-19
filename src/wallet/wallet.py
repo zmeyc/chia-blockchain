@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, Set, Any
+from typing import Dict, List, Set, Any, Tuple
 import logging
 from blspy import G1Element
 from src.types.coin import Coin
@@ -139,7 +139,7 @@ class Wallet:
         public_key = await self.hack_populate_secret_key_for_puzzle_hash(puzzle_hash)
         return puzzle_for_pk(bytes(public_key))
 
-    async def pubkey_and_puzzle_for_puzzle_hash(self, puzzle_hash: bytes32) -> Program:
+    async def pubkey_and_puzzle_for_puzzle_hash(self, puzzle_hash: bytes32) -> Tuple[G1Element, Program]:
         public_key = await self.hack_populate_secret_key_for_puzzle_hash(puzzle_hash)
         return public_key, puzzle_for_pk(bytes(public_key))
 

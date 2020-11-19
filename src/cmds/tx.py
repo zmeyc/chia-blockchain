@@ -22,7 +22,7 @@ from src.types.sized_bytes import bytes32
 from src.types.coin_solution import CoinSolution
 from src.types.spend_bundle import SpendBundle
 from src.types.coin import Coin
-from src.util.ints import uint64
+from src.util.ints import uint64, uint16
 from src.wallet.puzzles.puzzle_utils import (
     make_assert_my_coin_id_condition,
     make_assert_time_exceeds_condition,
@@ -200,7 +200,7 @@ def encode_spendbundle(spend_bundle: SpendBundle):
     return bytes(spend_bundle).hex()
 
 
-def decode_spendbundle(spend_bundle_bytes: bytes):
+def decode_spendbundle(spend_bundle_bytes: str):
     return SpendBundle.from_bytes(bytes.fromhex(spend_bundle_bytes))
 
 
@@ -220,7 +220,7 @@ def make_parser(parser):
 
 
 async def get_new_address():
-    wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
+    wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
     address = await wrpc.get_next_address(1)
     print(f"Chech32 encoded: {address}")
     print(f"Puzzlehash: {decode_puzzle_hash(address).hex()}")
@@ -228,14 +228,14 @@ async def get_new_address():
 
 
 async def push_spendbundle(spend_bundle: SpendBundle):
-    wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
+    wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
     await wrpc.push_spend_bundle(bytes(spend_bundle).hex())
     wrpc.close()
     return
 
 
 async def view_coins(args):
-    wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
+    wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
     coins = await wrpc.get_spendable_coins(1)
     print()
     for coin in coins:
@@ -253,7 +253,7 @@ def fail_cmd(parser, msg):
 
 
 async def sign_spendbundle(spend_bundle) -> SpendBundle:
-    wrpc = await WalletRpcClient.create("127.0.0.1", 9256)
+    wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
     signed_spend_bundle: str = await wrpc.sign_spend_bundle(bytes(spend_bundle).hex())
     debug_spend_bundle(SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle)))
     return SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle))
