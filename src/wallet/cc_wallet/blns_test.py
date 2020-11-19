@@ -48,7 +48,7 @@ breaking_lines_solution: List[str] = []
 for line in lines:
     if line[0] != "#":
         try:
-            prog = Program(binutils.assemble(f"(c 2 (q ()))"))
+            prog = Program(binutils.assemble("(c 2 (q ()))"))
             cost_run, sexp = prog.run_with_cost(Program.to([line.encode("utf-8")]))
             print(f"cost: {cost_run}")
             print(f"input: {line}")
