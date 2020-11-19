@@ -189,7 +189,17 @@ def help_message():
         + "    chia tx create json_transaction_specification\n"
         + "    chia tx push json_transaction\n"
         + "    chia tx view-coins\n"
+        + "    chia tx encode spend_bundle_json\n"
+        + "    chia tx decode spend_bundle_hex_bytes\n"
     )
+
+
+def encode_spendbundle(spend_bundle: SpendBundle):
+    return bytes(spend_bundle).hex()
+
+
+def decode_spendbundle(spend_bundle_bytes: bytes):
+    return SpendBundle.from_bytes(bytes.fromhex(spend_bundle_bytes))
 
 
 def make_parser(parser):
@@ -255,6 +265,7 @@ def handler(args, parser):
         json_tx = args.cmd_args[0]
         spend_bundle = create_unsigned_tx_from_json(json_tx)
         debug_spend_bundle(spend_bundle)
+        print(bytes(spend_bundle).hex())
     elif command == "verify":
         print()
     elif command == "sign":
@@ -269,9 +280,11 @@ def handler(args, parser):
         debug_spend_bundle(signed_sb)
         return asyncio.get_event_loop().run_until_complete(push_spendbundle(signed_sb))
     elif command == "encode":
-        print()
+        pass
     elif command == "decode":
-        print()
+        sb = decode_spendbundle(args.cmd_args[0])
+        debug_spend_bundle(sb)
+        print(sb)
     elif command == "view-coins":
         parser.exit(asyncio.get_event_loop().run_until_complete(view_coins(args.cmd_args)))
     else:
