@@ -247,8 +247,12 @@ async def view_coins(args):
     coins = await wrpc.get_spendable_coins(1)
     print()
     for coin in coins:
+        print("Coin pubkey and puzzle: ")
         print(coin)
+        print("Puzzle decompiled: ")
         print(binutils.disassemble(Program.from_bytes(bytes.fromhex(coin["puzzle"]))))
+        print("Coin ID: ")
+        print(Coin(bytes.fromhex(coin["parent_coin_info"][2:]), bytes.fromhex(coin["puzzle_hash"][2:]), int(coin["amount"])).name())
         print()
     wrpc.close()
     return
