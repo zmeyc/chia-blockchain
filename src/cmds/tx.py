@@ -72,6 +72,15 @@ class SpendRequest:
         self.amount = amt
 
 
+async def connect_to_wallet_node():
+    try:
+        wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
+        return wrpc
+    except Exception as e:
+        print("ERROR: Could not connect to wallet, check wallet node is running and try again.")
+        raise e
+
+
 def create_unsigned_transaction(
     inputs: List[dict] = None,
     spend_requests: List[SpendRequest] = None,
@@ -182,6 +191,7 @@ command_list = [
     "decode",
     "view-coins",
     "get-address",
+    "send-to-address",
 ]
 
 
@@ -218,7 +228,7 @@ def make_parser(parser):
 
 
 async def get_new_address():
-    wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
+    wrpc = await connect_to_wallet_node()
     address = await wrpc.get_next_address(1)
     print(f"Chech32 encoded: {address}")
     print(f"Puzzlehash: {decode_puzzle_hash(address).hex()}")
@@ -226,14 +236,14 @@ async def get_new_address():
 
 
 async def push_spendbundle(spend_bundle: SpendBundle):
-    wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
+    wrpc = await connect_to_wallet_node()
     await wrpc.push_spend_bundle(bytes(spend_bundle).hex())
     wrpc.close()
     return
 
 
 async def view_coins(args):
-    wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
+    wrpc = await connect_to_wallet_node()
     coins = await wrpc.get_spendable_coins(1)
     print()
     for coin in coins:
@@ -251,10 +261,16 @@ def fail_cmd(parser, msg):
 
 
 async def sign_spendbundle(spend_bundle) -> SpendBundle:
-    wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
+    wrpc = await connect_to_wallet_node()
     signed_spend_bundle: str = await wrpc.sign_spend_bundle(bytes(spend_bundle).hex())
     debug_spend_bundle(SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle)))
     return SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle))
+
+
+async def send_to_address(address, amount, fee):
+    wrpc = await connect_to_wallet_node()
+    await wrpc.send_transaction(1, uint64(amount), address, fee)
+    wrpc.close()
 
 
 def handler(args, parser):
@@ -264,10 +280,10 @@ def handler(args, parser):
         help_message()
         parser.exit(1)
 
-    if args.cmd_args is None or len(args.cmd_args) < 1:
-        fail_cmd(parser, f"Too few arguments to command 'chia tx {command}'")
-    if len(args.cmd_args) > 1:
-        fail_cmd(parser, f"Too many arguments to command 'chia tx {command}'")
+    # if args.cmd_args is None or len(args.cmd_args) < 1:
+    #     fail_cmd(parser, f"Too few arguments to command 'chia tx {command}'")
+    # if len(args.cmd_args) > 1:
+    #     fail_cmd(parser, f"Too many arguments to command 'chia tx {command}'")
 
     if command == "create":
         json_tx = args.cmd_args[0]
@@ -303,6 +319,11 @@ def handler(args, parser):
         )
     elif command == "get-address":
         asyncio.get_event_loop().run_until_complete(get_new_address())
+    elif command == "send-to-address":
+        address = args.cmd_args[0]
+        amount = args.cmd_args[1]
+        fee = args.cmd_args[2]
+        asyncio.get_event_loop().run_until_complete(send_to_address(address, amount, fee))
     else:
         print(f"command '{command}' is not recognised")
         parser.exit(1)
