@@ -32,6 +32,7 @@
         "puzzle_reveal": "((c (i (= (sha256 2) (q 0x2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824)) (q (c (c (q 51) (c 5 (c (q 100) (q ())))) (q ()))) (q (x 'wrong password'))) 1))",
         "solution": "('hello' 0xc4841b0e3c08faf750ee5d0024be40484b082eb5ff6c484312c5431bf1dc2785)"
       }
-  ]
+  ],
+  "signatures": ["b5f145b427eceecaada1001d4ab0692c49c4264ff47b500c2b5a3014acde70db04662a65cca23060876d55eb35c7febc1905cc0196b3433d9986186c491241ad48a6911ac2b97a15d777951ece7ccbe398c32368b2b7581df77fd5127a11399d"]
 
 }

@@ -132,6 +132,8 @@ def debug_spend_bundle(spend_bundle: SpendBundle) -> None:
     print()
     print("=" * 80)
     print()
+    print(f"Aggregated Signature: {spend_bundle.aggregated_signature}")
+    print()
     if len(msgs) > 0:
         validates = AugSchemeMPL.aggregate_verify(
             pks, msgs, spend_bundle.aggregated_signature

@@ -15,7 +15,7 @@ from src.util.byte_types import hexstr_to_bytes
 from src.util.chech32 import decode_puzzle_hash
 
 # blspy
-from blspy import G1Element, G2Element
+from blspy import G1Element, G2Element, AugSchemeMPL
 
 # transaction imports
 from src.types.program import Program
@@ -59,7 +59,6 @@ def make_solution(primaries=None, min_time=0, me=None, consumed=None, fee=0):
         condition_list.append(make_assert_my_coin_id_condition(me["id"]))
     if fee:
         condition_list.append(make_assert_fee_condition(fee))
-    print(condition_list)
     return solution_for_conditions(condition_list)
 
 
@@ -128,12 +127,11 @@ def create_unsigned_transaction(
 
     for i in inputs:
         coin = i["coin"]
-        print(f"processing coin {coin}")
+        # print(f"processing coin {coin}")
         solution = make_solution()
         puzzle = puzzle_for_pk(coin.pubkey)
         puzzle_solution_pair = Program.to([puzzle, solution])
         spends.append(CoinSolution(coin, puzzle_solution_pair))
-
     return spends
 
 
@@ -159,7 +157,7 @@ def create_unsigned_tx_from_json(json_tx) -> SpendBundle:
                 SpendRequest(hexstr_to_bytes(s["puzzle_hash"]), s["amount"])
                 for s in spend_requests_json
             ]
-            print(input_coins, spend_requests)
+            # print(input_coins, spend_requests)
             spends.extend(create_unsigned_transaction(input_coins, spend_requests))
         elif "solution" in s:
             input_coin = Coin(
@@ -173,8 +171,11 @@ def create_unsigned_tx_from_json(json_tx) -> SpendBundle:
             spends.append(
                 CoinSolution(input_coin, Program.to([puzzle_reveal, solution]))
             )
-
-    spend_bundle = SpendBundle(spends, G2Element.infinity())
+    sig = G2Element.infinity()
+    if "signatures" in j:
+        for s in j["signatures"]:
+            sig = AugSchemeMPL.aggregate([sig, G2Element.from_bytes(bytes.fromhex(s))])
+    spend_bundle = SpendBundle(spends, sig)
     return spend_bundle
     # output = { "spends": spends }
 
@@ -275,7 +276,7 @@ def fail_cmd(parser, msg):
 async def sign_spendbundle(spend_bundle) -> SpendBundle:
     wrpc = await connect_to_wallet_node()
     signed_spend_bundle: str = await wrpc.sign_spend_bundle(bytes(spend_bundle).hex())
-    debug_spend_bundle(SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle)))
+    wrpc.close()
     return SpendBundle.from_bytes(bytes.fromhex(signed_spend_bundle))
 
 
@@ -303,14 +304,19 @@ def handler(args, parser):
         debug_spend_bundle(spend_bundle)
         print(bytes(spend_bundle).hex())
     elif command == "verify":
-        print()
+        json_tx = args.cmd_args[0]
+        spend_bundle = create_unsigned_tx_from_json(json_tx)
+        signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(
+            sign_spendbundle(spend_bundle)
+        )
+        print(f"SpendBundle has valid aggregate signature: {signed_sb.aggsig()}")
     elif command == "sign":
         json_tx = args.cmd_args[0]
         spend_bundle = create_unsigned_tx_from_json(json_tx)
         signed_sb: SpendBundle = asyncio.get_event_loop().run_until_complete(
             sign_spendbundle(spend_bundle)
         )
-        debug_spend_bundle(signed_sb)
+        print(signed_sb)
     elif command == "push":
         json_tx = args.cmd_args[0]
         spend_bundle = create_unsigned_tx_from_json(json_tx)
@@ -318,7 +324,13 @@ def handler(args, parser):
             sign_spendbundle(spend_bundle)
         )
         debug_spend_bundle(signed_sb)
-        return asyncio.get_event_loop().run_until_complete(push_spendbundle(signed_sb))
+        if signed_sb.aggsig():
+            print("Do you want to send this spend to the network? (y/n)")
+            response = input()
+            if response == "y":
+                return asyncio.get_event_loop().run_until_complete(push_spendbundle(signed_sb))
+        else:
+            print("This spend_bundle has an invalid signature.")
     elif command == "encode":
         pass
     elif command == "decode":
