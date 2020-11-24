@@ -328,7 +328,9 @@ def handler(args, parser):
             print("Do you want to send this spend to the network? (y/n)")
             response = input()
             if response == "y":
-                return asyncio.get_event_loop().run_until_complete(push_spendbundle(signed_sb))
+                return asyncio.get_event_loop().run_until_complete(
+                    push_spendbundle(signed_sb)
+                )
         else:
             print("This spend_bundle has an invalid signature.")
     elif command == "encode":
