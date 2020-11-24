@@ -77,7 +77,9 @@ async def connect_to_wallet_node():
         wrpc = await WalletRpcClient.create("127.0.0.1", uint16(9256))
         return wrpc
     except Exception as e:
-        print("ERROR: Could not connect to wallet, check wallet node is running and try again.")
+        print(
+            "ERROR: Could not connect to wallet, check wallet node is running and try again."
+        )
         raise e
 
 
@@ -252,7 +254,13 @@ async def view_coins(args):
         print("Puzzle decompiled: ")
         print(binutils.disassemble(Program.from_bytes(bytes.fromhex(coin["puzzle"]))))
         print("Coin ID: ")
-        print(Coin(bytes.fromhex(coin["parent_coin_info"][2:]), bytes.fromhex(coin["puzzle_hash"][2:]), int(coin["amount"])).name())
+        print(
+            Coin(
+                bytes.fromhex(coin["parent_coin_info"][2:]),
+                bytes.fromhex(coin["puzzle_hash"][2:]),
+                int(coin["amount"]),
+            ).name()
+        )
         print()
     wrpc.close()
     return
@@ -327,7 +335,9 @@ def handler(args, parser):
         address = args.cmd_args[0]
         amount = args.cmd_args[1]
         fee = args.cmd_args[2]
-        asyncio.get_event_loop().run_until_complete(send_to_address(address, amount, fee))
+        asyncio.get_event_loop().run_until_complete(
+            send_to_address(address, amount, fee)
+        )
     else:
         print(f"command '{command}' is not recognised")
         parser.exit(1)
