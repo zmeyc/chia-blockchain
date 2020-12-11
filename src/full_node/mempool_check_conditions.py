@@ -13,7 +13,9 @@ from src.util.errors import Err
 import time
 
 from src.util.ints import uint64
-from src.wallet.puzzles.generator_loader import GENERATOR_MOD
+
+# Sourced from puzzles/generator.clvm
+GENERATOR_MOD = Program.from_bytes(bytes.fromhex("ffff05ffff01ffffff05ff04ffff05ff02ffff05ffffff05ff03ffff01ff80808080ffff01ffff8080808080808080ffff05ffff01ffffffff05ffff04ff05ffff01ffffff05ff04ffff05ff02ffff05ff0dffff05ffff05ffffff05ff0affff05ff02ffff05ff09ffff01ff808080808080ff0b80ffff01ff8080808080808080ffff01ff0b8080ff018080ffffff05ffff04ffffff05ffff04ffff0aff1dffff01ff808080ffff01ffffff05ffff04ffff0aff75ffff01ff808080ffff01ffffff05ffff04ffff0affff11ff0980ffff01ff208080ffff01ffff01ff018080ffff01ffff01ff80808080ff01808080ffff01ffff01ff80808080ff01808080ffff01ffff01ff80808080ff018080ffff01ffff05ff09ffff05ffffff05ff0effff05ff02ffff05ff25ffff01ff808080808080ffff05ffffff05ff25ff558080ffff01ff808080808080ffff01ffff09808080ff018080ffff05ffff04ffff08ff0580ffff01ffff0bffff01ff0280ffffff05ff0effff05ff02ffff05ff09ffff01ff808080808080ffffff05ff0effff05ff02ffff05ff0dffff01ff8080808080808080ffff01ffff0bffff01ff0180ff05808080ff01808080ff01808080"))
 
 
 def mempool_assert_coin_consumed(
@@ -90,13 +92,11 @@ def mempool_assert_time_exceeds(condition: ConditionVarList):
 
 def get_name_puzzle_conditions(block_program: Program, safe_mode: bool):
     # TODO: catch failed result
-    # TODO: safe mode boolean - puke on unknowns or not
     # TODO: allow generator mod to take something (future)
     # TODO: load generator_mod from hex
     cost, result = GENERATOR_MOD.run_with_cost(block_program)
     npc_list = []
     opcodes = set(item.value for item in ConditionOpcode)
-    # TODO: as_python can cause blow up - use as_iter
     for res in result.as_iter():
         conditions_list = []
         name = res.first().as_atom()
@@ -104,7 +104,7 @@ def get_name_puzzle_conditions(block_program: Program, safe_mode: bool):
         for cond in res.rest().rest().first().as_iter():
             if cond.first().as_atom() in opcodes:
                 opcode = ConditionOpcode(cond.first().as_atom())
-            elif safe_mode:
+            elif not safe_mode:
                 opcode = ConditionOpcode.UNKNOWN
             else:
                 raise Exception
