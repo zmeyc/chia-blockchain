@@ -593,7 +593,7 @@ class BlockTools:
         tx_additions: List[Coin] = []
         tx_removals: List[bytes32] = []
         if transactions:
-            error, npc_list, _ = get_name_puzzle_conditions(transactions)
+            error, npc_list, _ = get_name_puzzle_conditions(transactions, True)
             additions: List[Coin] = additions_for_npc(npc_list)
             for coin in additions:
                 tx_additions.append(coin)

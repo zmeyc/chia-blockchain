@@ -41,7 +41,7 @@ class TestCostCalculation:
 
         error, npc_list, clvm_cost = calculate_cost_of_program(program, ratio)
 
-        error, npc_list, cost = get_name_puzzle_conditions(program)
+        error, npc_list, cost = get_name_puzzle_conditions(program, False)
 
         # Create condition + agg_sig_condition + length + cpu_cost
         assert (
