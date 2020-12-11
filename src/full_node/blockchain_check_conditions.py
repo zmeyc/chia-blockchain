@@ -1,7 +1,7 @@
 import time
 from typing import Optional, Dict, List
 
-from src.types.condition_var_list import ConditionVaList
+from src.types.condition_var_list import ConditionVarList
 from src.types.coin_record import CoinRecord
 from src.types.header import Header
 from src.types.sized_bytes import bytes32
@@ -12,7 +12,7 @@ from src.util.ints import uint64
 
 
 def blockchain_assert_coin_consumed(
-    condition: ConditionVaList, removed: Dict[bytes32, CoinRecord]
+    condition: ConditionVarList, removed: Dict[bytes32, CoinRecord]
 ) -> Optional[Err]:
     """
     Checks coin consumed conditions
@@ -25,7 +25,7 @@ def blockchain_assert_coin_consumed(
 
 
 def blockchain_assert_my_coin_id(
-    condition: ConditionVaList, unspent: CoinRecord
+    condition: ConditionVarList, unspent: CoinRecord
 ) -> Optional[Err]:
     """
     Checks if CoinID matches the id from the condition
@@ -36,7 +36,7 @@ def blockchain_assert_my_coin_id(
 
 
 def blockchain_assert_block_index_exceeds(
-    condition: ConditionVaList, header: Header
+    condition: ConditionVarList, header: Header
 ) -> Optional[Err]:
     """
     Checks if the next block index exceeds the block index from the condition
@@ -52,7 +52,7 @@ def blockchain_assert_block_index_exceeds(
 
 
 def blockchain_assert_block_age_exceeds(
-    condition: ConditionVaList, unspent: CoinRecord, header: Header
+    condition: ConditionVarList, unspent: CoinRecord, header: Header
 ) -> Optional[Err]:
     """
     Checks if the coin age exceeds the age from the condition
@@ -67,7 +67,7 @@ def blockchain_assert_block_age_exceeds(
     return None
 
 
-def blockchain_assert_time_exceeds(condition: ConditionVaList):
+def blockchain_assert_time_exceeds(condition: ConditionVarList):
     """
     Checks if current time in millis exceeds the time specified in condition
     """
@@ -85,14 +85,14 @@ def blockchain_assert_time_exceeds(condition: ConditionVaList):
 def blockchain_check_conditions_dict(
     unspent: CoinRecord,
     removed: Dict[bytes32, CoinRecord],
-    conditions_dict: Dict[ConditionOpcode, List[ConditionVaList]],
+    conditions_dict: Dict[ConditionOpcode, List[ConditionVarList]],
     header: Header,
 ) -> Optional[Err]:
     """
     Check all conditions against current state.
     """
     for con_list in conditions_dict.values():
-        cvl: ConditionVaList
+        cvl: ConditionVarList
         for cvl in con_list:
             error = None
             if cvl.opcode is ConditionOpcode.ASSERT_COIN_CONSUMED:
