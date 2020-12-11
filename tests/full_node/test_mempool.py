@@ -8,7 +8,7 @@ from src.server.outbound_message import OutboundMessage
 from src.protocols import full_node_protocol
 from src.types.coin import Coin
 from src.types.coin_solution import CoinSolution
-from src.types.condition_var_pair import ConditionVarPair
+from src.types.condition_var_list import ConditionVarList
 from src.types.condition_opcodes import ConditionOpcode
 from src.types.spend_bundle import SpendBundle
 from src.util.condition_tools import (
@@ -28,7 +28,7 @@ WALLET_A = bt.get_pool_wallet_tool()
 
 def generate_test_spend_bundle(
     coin: Coin,
-    condition_dic: Dict[ConditionOpcode, List[ConditionVarPair]] = None,
+    condition_dic: Dict[ConditionOpcode, List[ConditionVarList]] = None,
     fee: int = 0,
     amount: int = 1000,
     newpuzzlehash=BURN_PUZZLE_HASH,
@@ -221,7 +221,7 @@ class TestMempool:
         ):
             pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_BLOCK_INDEX_EXCEEDS,
             uint64(2).to_bytes(4, "big"),
             None,
@@ -256,7 +256,7 @@ class TestMempool:
         ):
             pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_BLOCK_INDEX_EXCEEDS,
             uint64(1).to_bytes(4, "big"),
             None,
@@ -291,7 +291,7 @@ class TestMempool:
         ):
             pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS, uint64(5).to_bytes(4, "big"), None
         )
         dic = {cvp.opcode: [cvp]}
@@ -326,7 +326,7 @@ class TestMempool:
             ):
                 pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS, uint64(3).to_bytes(4, "big"), None
         )
         dic = {cvp.opcode: [cvp]}
@@ -361,7 +361,7 @@ class TestMempool:
             ):
                 pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_MY_COIN_ID, block.get_coinbase().name(), None
         )
         dic = {cvp.opcode: [cvp]}
@@ -396,7 +396,7 @@ class TestMempool:
             ):
                 pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_MY_COIN_ID,
             blocks[2].get_coinbase().name(),
             None,
@@ -435,7 +435,7 @@ class TestMempool:
 
         time_now = uint64(int(time() * 1000))
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_TIME_EXCEEDS, time_now.to_bytes(8, "big"), None
         )
         dic = {cvp.opcode: [cvp]}
@@ -473,7 +473,7 @@ class TestMempool:
         time_now = uint64(int(time() * 1000))
         time_now_plus_3 = time_now + 3000
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_TIME_EXCEEDS,
             time_now_plus_3.to_bytes(8, "big"),
             None,
@@ -521,7 +521,7 @@ class TestMempool:
             ):
                 pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_COIN_CONSUMED,
             block2.get_coinbase().name(),
             None,
@@ -562,7 +562,7 @@ class TestMempool:
             ):
                 pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_COIN_CONSUMED,
             block2.get_coinbase().name(),
             None,
@@ -601,7 +601,7 @@ class TestMempool:
             ):
                 pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_FEE,
             int_to_bytes(10),
             None,
@@ -648,7 +648,7 @@ class TestMempool:
             ):
                 pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_FEE,
             int_to_bytes(10),
             None,
@@ -701,7 +701,7 @@ class TestMempool:
             ):
                 pass
 
-        cvp = ConditionVarPair(
+        cvp = ConditionVarList(
             ConditionOpcode.ASSERT_FEE,
             int_to_bytes(10),
             None,

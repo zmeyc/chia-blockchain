@@ -1,7 +1,7 @@
 import time
 from typing import Optional, Dict, List
 
-from src.types.condition_var_pair import ConditionVarPair
+from src.types.condition_var_list import ConditionVaList
 from src.types.coin_record import CoinRecord
 from src.types.header import Header
 from src.types.sized_bytes import bytes32
@@ -12,7 +12,7 @@ from src.util.ints import uint64
 
 
 def blockchain_assert_coin_consumed(
-    condition: ConditionVarPair, removed: Dict[bytes32, CoinRecord]
+    condition: ConditionVaList, removed: Dict[bytes32, CoinRecord]
 ) -> Optional[Err]:
     """
     Checks coin consumed conditions
@@ -25,7 +25,7 @@ def blockchain_assert_coin_consumed(
 
 
 def blockchain_assert_my_coin_id(
-    condition: ConditionVarPair, unspent: CoinRecord
+    condition: ConditionVaList, unspent: CoinRecord
 ) -> Optional[Err]:
     """
     Checks if CoinID matches the id from the condition
@@ -36,7 +36,7 @@ def blockchain_assert_my_coin_id(
 
 
 def blockchain_assert_block_index_exceeds(
-    condition: ConditionVarPair, header: Header
+    condition: ConditionVaList, header: Header
 ) -> Optional[Err]:
     """
     Checks if the next block index exceeds the block index from the condition
@@ -52,7 +52,7 @@ def blockchain_assert_block_index_exceeds(
 
 
 def blockchain_assert_block_age_exceeds(
-    condition: ConditionVarPair, unspent: CoinRecord, header: Header
+    condition: ConditionVaList, unspent: CoinRecord, header: Header
 ) -> Optional[Err]:
     """
     Checks if the coin age exceeds the age from the condition
@@ -67,7 +67,7 @@ def blockchain_assert_block_age_exceeds(
     return None
 
 
-def blockchain_assert_time_exceeds(condition: ConditionVarPair):
+def blockchain_assert_time_exceeds(condition: ConditionVaList):
     """
     Checks if current time in millis exceeds the time specified in condition
     """
@@ -85,26 +85,26 @@ def blockchain_assert_time_exceeds(condition: ConditionVarPair):
 def blockchain_check_conditions_dict(
     unspent: CoinRecord,
     removed: Dict[bytes32, CoinRecord],
-    conditions_dict: Dict[ConditionOpcode, List[ConditionVarPair]],
+    conditions_dict: Dict[ConditionOpcode, List[ConditionVaList]],
     header: Header,
 ) -> Optional[Err]:
     """
     Check all conditions against current state.
     """
     for con_list in conditions_dict.values():
-        cvp: ConditionVarPair
-        for cvp in con_list:
+        cvl: ConditionVaList
+        for cvl in con_list:
             error = None
-            if cvp.opcode is ConditionOpcode.ASSERT_COIN_CONSUMED:
-                error = blockchain_assert_coin_consumed(cvp, removed)
-            elif cvp.opcode is ConditionOpcode.ASSERT_MY_COIN_ID:
-                error = blockchain_assert_my_coin_id(cvp, unspent)
-            elif cvp.opcode is ConditionOpcode.ASSERT_BLOCK_INDEX_EXCEEDS:
-                error = blockchain_assert_block_index_exceeds(cvp, header)
-            elif cvp.opcode is ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS:
-                error = blockchain_assert_block_age_exceeds(cvp, unspent, header)
-            elif cvp.opcode is ConditionOpcode.ASSERT_TIME_EXCEEDS:
-                error = blockchain_assert_time_exceeds(cvp)
+            if cvl.opcode is ConditionOpcode.ASSERT_COIN_CONSUMED:
+                error = blockchain_assert_coin_consumed(cvl, removed)
+            elif cvl.opcode is ConditionOpcode.ASSERT_MY_COIN_ID:
+                error = blockchain_assert_my_coin_id(cvl, unspent)
+            elif cvl.opcode is ConditionOpcode.ASSERT_BLOCK_INDEX_EXCEEDS:
+                error = blockchain_assert_block_index_exceeds(cvl, header)
+            elif cvl.opcode is ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS:
+                error = blockchain_assert_block_age_exceeds(cvl, unspent, header)
+            elif cvl.opcode is ConditionOpcode.ASSERT_TIME_EXCEEDS:
+                error = blockchain_assert_time_exceeds(cvl)
 
             if error:
                 return error

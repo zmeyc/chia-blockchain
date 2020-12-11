@@ -5,7 +5,7 @@ from src.types.condition_opcodes import ConditionOpcode
 
 
 @dataclass(frozen=True)
-class ConditionVarPair:
+class ConditionVarList:
     """
     This structure is used to store parsed CLVM conditions
     Conditions in CLVM have either format of (opcode, var1) or (opcode, var1, var2)

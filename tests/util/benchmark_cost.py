@@ -5,7 +5,7 @@ from blspy import PrivateKey, AugSchemeMPL
 from clvm_tools import binutils
 
 from src.types.condition_opcodes import ConditionOpcode
-from src.types.condition_var_pair import ConditionVarPair
+from src.types.condition_var_list import ConditionVarList
 from src.types.program import Program
 from src.wallet.puzzles.p2_delegated_puzzle import puzzle_for_pk
 from src.util.wallet_tools import WalletTool
@@ -139,7 +139,7 @@ if __name__ == "__main__":
         solution = wallet_tool.make_solution(
             {
                 ConditionOpcode.ASSERT_MY_COIN_ID: [
-                    ConditionVarPair(
+                    ConditionVarList(
                         ConditionOpcode.ASSERT_MY_COIN_ID, token_bytes(), None
                     )
                 ]

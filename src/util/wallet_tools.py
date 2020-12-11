@@ -2,7 +2,7 @@ from typing import List, Optional, Dict
 
 from blspy import PrivateKey, AugSchemeMPL, G2Element
 
-from src.types.condition_var_pair import ConditionVarPair
+from src.types.condition_var_list import ConditionVarList
 from src.types.condition_opcodes import ConditionOpcode
 from src.types.program import Program
 from src.types.coin import Coin
@@ -97,28 +97,28 @@ class WalletTool:
         return AugSchemeMPL.sign(privatekey, value)
 
     def make_solution(
-        self, condition_dic: Dict[ConditionOpcode, List[ConditionVarPair]]
+        self, condition_dic: Dict[ConditionOpcode, List[ConditionVarList]]
     ) -> Program:
         ret = []
 
         for con_list in condition_dic.values():
-            for cvp in con_list:
-                if cvp.opcode == ConditionOpcode.CREATE_COIN:
-                    ret.append(make_create_coin_condition(cvp.vars[0], cvp.vars[1]))
-                if cvp.opcode == ConditionOpcode.AGG_SIG:
-                    ret.append(make_assert_aggsig_condition(cvp.vars[0]))
-                if cvp.opcode == ConditionOpcode.ASSERT_COIN_CONSUMED:
-                    ret.append(make_assert_coin_consumed_condition(cvp.vars[0]))
-                if cvp.opcode == ConditionOpcode.ASSERT_TIME_EXCEEDS:
-                    ret.append(make_assert_time_exceeds_condition(cvp.vars[0]))
-                if cvp.opcode == ConditionOpcode.ASSERT_MY_COIN_ID:
-                    ret.append(make_assert_my_coin_id_condition(cvp.vars[0]))
-                if cvp.opcode == ConditionOpcode.ASSERT_BLOCK_INDEX_EXCEEDS:
-                    ret.append(make_assert_block_index_exceeds_condition(cvp.vars[0]))
-                if cvp.opcode == ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS:
-                    ret.append(make_assert_block_age_exceeds_condition(cvp.vars[0]))
-                if cvp.opcode == ConditionOpcode.ASSERT_FEE:
-                    ret.append(make_assert_fee_condition(cvp.vars[0]))
+            for cvl in con_list:
+                if cvl.opcode == ConditionOpcode.CREATE_COIN:
+                    ret.append(make_create_coin_condition(cvl.vars[0], cvl.vars[1]))
+                if cvl.opcode == ConditionOpcode.AGG_SIG:
+                    ret.append(make_assert_aggsig_condition(cvl.vars[0]))
+                if cvl.opcode == ConditionOpcode.ASSERT_COIN_CONSUMED:
+                    ret.append(make_assert_coin_consumed_condition(cvl.vars[0]))
+                if cvl.opcode == ConditionOpcode.ASSERT_TIME_EXCEEDS:
+                    ret.append(make_assert_time_exceeds_condition(cvl.vars[0]))
+                if cvl.opcode == ConditionOpcode.ASSERT_MY_COIN_ID:
+                    ret.append(make_assert_my_coin_id_condition(cvl.vars[0]))
+                if cvl.opcode == ConditionOpcode.ASSERT_BLOCK_INDEX_EXCEEDS:
+                    ret.append(make_assert_block_index_exceeds_condition(cvl.vars[0]))
+                if cvl.opcode == ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS:
+                    ret.append(make_assert_block_age_exceeds_condition(cvl.vars[0]))
+                if cvl.opcode == ConditionOpcode.ASSERT_FEE:
+                    ret.append(make_assert_fee_condition(cvl.vars[0]))
 
         return solution_for_conditions(Program.to(ret))
 
@@ -127,7 +127,7 @@ class WalletTool:
         amount: uint64,
         newpuzzlehash: bytes32,
         coin: Coin,
-        condition_dic: Dict[ConditionOpcode, List[ConditionVarPair]],
+        condition_dic: Dict[ConditionOpcode, List[ConditionVarList]],
         fee: int = 0,
         secretkey=None,
     ) -> List[CoinSolution]:
@@ -141,18 +141,18 @@ class WalletTool:
         if ConditionOpcode.CREATE_COIN not in condition_dic:
             condition_dic[ConditionOpcode.CREATE_COIN] = []
 
-        output = ConditionVarPair(
+        output = ConditionVarList(
             ConditionOpcode.CREATE_COIN, newpuzzlehash, int_to_bytes(amount)
         )
         condition_dic[output.opcode].append(output)
         amount_total = sum(
-            int_from_bytes(cvp.vars[1])
-            for cvp in condition_dic[ConditionOpcode.CREATE_COIN]
+            int_from_bytes(cvl.vars[1])
+            for cvl in condition_dic[ConditionOpcode.CREATE_COIN]
         )
         change = spend_value - amount_total - fee
         if change > 0:
             changepuzzlehash = self.get_new_puzzlehash()
-            change_output = ConditionVarPair(
+            change_output = ConditionVarList(
                 ConditionOpcode.CREATE_COIN, changepuzzlehash, int_to_bytes(change)
             )
             condition_dic[output.opcode].append(change_output)
@@ -194,7 +194,7 @@ class WalletTool:
         amount,
         newpuzzlehash,
         coin: Coin,
-        condition_dic: Dict[ConditionOpcode, List[ConditionVarPair]] = None,
+        condition_dic: Dict[ConditionOpcode, List[ConditionVarList]] = None,
         fee: int = 0,
     ) -> SpendBundle:
         if condition_dic is None:

@@ -20,7 +20,7 @@ from src.full_node.bundle_tools import best_solution_program
 from src.util.ints import uint16, uint32, uint64, uint8
 from src.util.hash import std_hash
 from src.full_node.full_node import FullNode
-from src.types.condition_var_pair import ConditionVarPair
+from src.types.condition_var_list import ConditionVarList
 from src.types.condition_opcodes import ConditionOpcode
 from tests.setup_nodes import setup_two_nodes, test_constants, bt
 from src.util.wallet_tools import WalletTool
@@ -153,7 +153,7 @@ class TestFullNodeProtocol:
         for _ in range(110):
             receiver_puzzlehash = wallet_receiver.get_new_puzzlehash()
             puzzle_hashes.append(receiver_puzzlehash)
-            output = ConditionVarPair(
+            output = ConditionVarList(
                 ConditionOpcode.CREATE_COIN, receiver_puzzlehash, int_to_bytes(1000)
             )
             conditions_dict[ConditionOpcode.CREATE_COIN].append(output)
