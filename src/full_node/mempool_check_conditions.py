@@ -107,39 +107,37 @@ def mempool_assert_time_exceeds(condition: ConditionVarList):
 
 
 def get_name_puzzle_conditions(block_program: Program, safe_mode: bool):
-    # TODO: catch failed result
     # TODO: allow generator mod to take something (future)
-    # TODO: load generator_mod from hex
-    cost, result = GENERATOR_MOD.run_with_cost(block_program)
-    npc_list = []
-    opcodes = set(item.value for item in ConditionOpcode)
-    for res in result.as_iter():
-        conditions_list = []
-        name = res.first().as_atom()
-        puzzle_hash = bytes32(res.rest().first().as_atom())
-        for cond in res.rest().rest().first().as_iter():
-            if cond.first().as_atom() in opcodes:
-                opcode = ConditionOpcode(cond.first().as_atom())
-            elif not safe_mode:
-                opcode = ConditionOpcode.UNKNOWN
-            else:
-                raise Exception
-            if len(list(cond.as_iter())) > 1:
-                cond_var_list = []
-                for cond in cond.rest().as_iter():
-                    cond_var_list.append(cond.as_atom())
-                cvl = ConditionVarList(opcode, *cond_var_list)
-            else:
-                cvl = ConditionVarList(opcode)
-            conditions_list.append(cvl)
-        conditions_dict = conditions_by_opcode(conditions_list)
-        if conditions_dict is None:
-            conditions_dict = {}
-        npc_list.append(NPC(name, puzzle_hash, conditions_dict))
-    return None, npc_list, uint64(cost)
-
-
-# TODO: write get puzzle and solution for coinname and blockprogram
+    try:
+        cost, result = GENERATOR_MOD.run_with_cost(block_program)
+        npc_list = []
+        opcodes = set(item.value for item in ConditionOpcode)
+        for res in result.as_iter():
+            conditions_list = []
+            name = res.first().as_atom()
+            puzzle_hash = bytes32(res.rest().first().as_atom())
+            for cond in res.rest().rest().first().as_iter():
+                if cond.first().as_atom() in opcodes:
+                    opcode = ConditionOpcode(cond.first().as_atom())
+                elif not safe_mode:
+                    opcode = ConditionOpcode.UNKNOWN
+                else:
+                    return "Unknown operator in safe mode.", None, None
+                if len(list(cond.as_iter())) > 1:
+                    cond_var_list = []
+                    for cond in cond.rest().as_iter():
+                        cond_var_list.append(cond.as_atom())
+                    cvl = ConditionVarList(opcode, *cond_var_list)
+                else:
+                    cvl = ConditionVarList(opcode)
+                conditions_list.append(cvl)
+            conditions_dict = conditions_by_opcode(conditions_list)
+            if conditions_dict is None:
+                conditions_dict = {}
+            npc_list.append(NPC(name, puzzle_hash, conditions_dict))
+        return None, npc_list, uint64(cost)
+    except Exception as e:
+        return e, None, None
 
 
 def mempool_check_conditions_dict(
