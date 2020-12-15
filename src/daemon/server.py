@@ -299,9 +299,7 @@ class WebSocketServer:
                 await websocket.send(response)
             except Exception as e:
                 tb = traceback.format_exc()
-                self.log.error(
-                    f"Unexpected exception trying to send to websocket: {e} {tb}"
-                )
+                self.log.error(f"Unexpected exception trying to send to websocket: {e} {tb}")
                 websockets.remove(websocket)
                 await websocket.close()
 
@@ -410,9 +408,7 @@ class WebSocketServer:
 
             service_name = config["service_name"]
             command_args = config["command_args"]
-            process, pid_path = launch_plotter(
-                self.root_path, service_name, command_args, id
-            )
+            process, pid_path = launch_plotter(self.root_path, service_name, command_args, id)
 
             current_process = process
 
@@ -704,9 +700,7 @@ def launch_service(root_path, service_command):
     return process, pid_path
 
 
-async def kill_process(
-    process, root_path, service_name, id, delay_before_kill=15
-) -> bool:
+async def kill_process(process, root_path, service_name, id, delay_before_kill=15) -> bool:
     pid_path = pid_path_for_service(root_path, service_name, id)
 
     if platform == "win32" or platform == "cygwin":

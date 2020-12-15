@@ -349,7 +349,7 @@ class WalletNode:
                 )
                 return None
             self.log.info("validated")
-            self.wallet_state_manager.sync_store.add_potential_proof(hb.header_hash, uint32(fork_point))
+            self.wallet_state_manager.sync_store.add_potential_fork_point(hb.header_hash, uint32(fork_point))
             self.wallet_state_manager.sync_store.add_potential_peak(hb)
             self.start_sync()
 
@@ -427,7 +427,7 @@ class WalletNode:
 
         fetched_blocks: Dict[int, HeaderBlockRecord] = {}
 
-        fork_height = self.wallet_state_manager.sync_store.get_potential_proof(peak.header_hash)
+        fork_height = self.wallet_state_manager.sync_store.get_potential_fork_point(peak.header_hash)
 
         for i in range(fork_height - 1, peak_height + 1):
             self.log.info(f"Requesting block {i}")
