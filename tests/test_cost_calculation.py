@@ -56,26 +56,6 @@ class TestCostCalculation:
 
     @pytest.mark.asyncio
     async def test_strict_mode(self):
-        wallet_tool = bt.get_pool_wallet_tool()
-        ph = wallet_tool.get_new_puzzlehash()
-
-        num_blocks = 3
-        blocks = bt.get_consecutive_blocks(
-            num_blocks, [], guarantee_block=True, pool_reward_puzzle_hash=ph, farmer_reward_puzzle_hash=ph
-        )
-
-        coinbase = None
-        for coin in blocks[1].get_included_reward_coins():
-            if coin.puzzle_hash == ph:
-                coinbase = coin
-                break
-        assert coinbase is not None
-        spend_bundle = wallet_tool.generate_signed_transaction(
-            coinbase.amount,
-            BURN_PUZZLE_HASH,
-            coinbase,
-        )
-        assert spend_bundle is not None
         program = binutils.assemble(
             "(q ((0x3d2331635a58c0d49912bc1427d7db51afe3f20a7b4bcaffa17ee250dcbcbfaa"
             " (((c (q ((c (q ((c (i 11 (q ((c (i (= 5 (point_add 11"
@@ -92,5 +72,55 @@ class TestCostCalculation:
         error, npc_list, cost = get_name_puzzle_conditions(program, False)
         assert error is None
 
-        coin_name = npc_list[0].coin_name
-        error, puzzle, solution = get_puzzle_and_solution_for_coin(program, coin_name)
+    @pytest.mark.asyncio
+    async def test_invalid_program(self):
+        # Invalid coin name length
+        program = binutils.assemble(
+            "(q ((0x3d2331635a58c0d49912bc1427d"
+            " (((c (q ((c (q ((c (i 11 (q ((c (i (= 5 (point_add 11"
+            " (pubkey_for_exp (sha256 11 ((c 6 (c 2 (c 23 (q ())))))))))"
+            " (q ((c 23 47))) (q (x))) 1))) (q (c (c 4 (c 5 (c ((c 6 (c 2"
+            " (c 23 (q ()))))) (q ())))) ((c 23 47))))) 1))) (c (q (57 (c"
+            " (i (l 5) (q (sha256 (q 2) ((c 6 (c 2 (c 9 (q ()))))) ((c 6 (c"
+            " 2 (c 13 (q ()))))))) (q (sha256 (q 1) 5))) 1))) 1)))) (c"
+            " (q 0x88bc9360319e7c54ab42e19e974288a2d7a817976f7633f4b43f36ce72074e59c4ab8ddac362202f3e366f0aebbb6280)"
+            ' 1))) (() (q ((51 "00000000000000000000000000000000" 0x0cbba106e000))) ())))))'
+        )
+        error, npc_list, cost = get_name_puzzle_conditions(program, False)
+        assert error is not None
+        error, npc_list, cost = get_name_puzzle_conditions(program, False)
+        assert error is not None
+
+        # Invalid coin_solution length
+        program = binutils.assemble(
+            "(q ((0x3d2331635a58c0d49912bc1427d7db51afe3f20a7b4bcaffa17ee250dcbcbfaa"
+            " () (((c (q ((c (q ((c (i 11 (q ((c (i (= 5 (point_add 11"
+            " (pubkey_for_exp (sha256 11 ((c 6 (c 2 (c 23 (q ())))))))))"
+            " (q ((c 23 47))) (q (x))) 1))) (q (c (c 4 (c 5 (c ((c 6 (c 2"
+            " (c 23 (q ()))))) (q ())))) ((c 23 47))))) 1))) (c (q (57 (c"
+            " (i (l 5) (q (sha256 (q 2) ((c 6 (c 2 (c 9 (q ()))))) ((c 6 (c"
+            " 2 (c 13 (q ()))))))) (q (sha256 (q 1) 5))) 1))) 1)))) (c"
+            " (q 0x88bc9360319e7c54ab42e19e974288a2d7a817976f7633f4b43f36ce72074e59c4ab8ddac362202f3e366f0aebbb6280)"
+            ' 1))) (() (q ((51 "00000000000000000000000000000000" 0x0cbba106e000))) ())))))'
+        )
+        error, npc_list, cost = get_name_puzzle_conditions(program, False)
+        assert error is not None
+        error, npc_list, cost = get_name_puzzle_conditions(program, False)
+        assert error is not None
+
+        # Invalid solution length
+        program = binutils.assemble(
+            "(q ((0x3d2331635a58c0d49912bc1427d7db51afe3f20a7b4bcaffa17ee250dcbcbfaa"
+            " (((c (q ((c (q ((c (i 11 (q ((c (i (= 5 (point_add 11"
+            " (pubkey_for_exp (sha256 11 ((c 6 (c 2 (c 23 (q ())))))))))"
+            " (q ((c 23 47))) (q (x))) 1))) (q (c (c 4 (c 5 (c ((c 6 (c 2"
+            " (c 23 (q ()))))) (q ())))) ((c 23 47))))) 1))) (c (q (57 (c"
+            " (i (l 5) (q (sha256 (q 2) ((c 6 (c 2 (c 9 (q ()))))) ((c 6 (c"
+            " 2 (c 13 (q ()))))))) (q (sha256 (q 1) 5))) 1))) 1)))) (c"
+            " (q 0x88bc9360319e7c54ab42e19e974288a2d7a817976f7633f4b43f36ce72074e59c4ab8ddac362202f3e366f0aebbb6280)"
+            ' 1))) (() (q ((51 "00000000000000000000000000000000" 0x0cbba106e000))))))))'
+        )
+        error, npc_list, cost = get_name_puzzle_conditions(program, False)
+        assert error is not None
+        error, npc_list, cost = get_name_puzzle_conditions(program, False)
+        assert error is not None
