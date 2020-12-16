@@ -312,8 +312,8 @@ class CCWallet:
                 created_output_conditions = conditions_dict[ConditionOpcode.CREATE_COIN]
             else:
                 continue
-            for cvp in created_output_conditions:
-                result = await self.wallet_state_manager.puzzle_store.wallet_info_for_puzzle_hash(cvp.vars[0])
+            for cvl in created_output_conditions:
+                result = await self.wallet_state_manager.puzzle_store.wallet_info_for_puzzle_hash(cvl.vars[0])
                 if result is None:
                     continue
 

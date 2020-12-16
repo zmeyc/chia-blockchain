@@ -9,7 +9,7 @@ from blspy import G1Element, AugSchemeMPL, G2Element
 from src.consensus.constants import ConsensusConstants
 from src.consensus.sub_block_record import SubBlockRecord
 from src.types.condition_opcodes import ConditionOpcode
-from src.types.condition_var_pair import ConditionVarPair
+from src.types.condition_var_list import ConditionVarList
 from src.full_node.bundle_tools import best_solution_program
 from src.types.coin import Coin
 from src.types.spend_bundle import SpendBundle
@@ -201,9 +201,9 @@ class MempoolManager:
 
         for npc in npc_list:
             if ConditionOpcode.ASSERT_FEE in npc.condition_dict:
-                fee_list: List[ConditionVarPair] = npc.condition_dict[ConditionOpcode.ASSERT_FEE]
-                for cvp in fee_list:
-                    fee = int_from_bytes(cvp.vars[0])
+                fee_list: List[ConditionVarList] = npc.condition_dict[ConditionOpcode.ASSERT_FEE]
+                for cvl in fee_list:
+                    fee = int_from_bytes(cvl.vars[0])
                     assert_fee_sum = assert_fee_sum + fee
 
         if fees < assert_fee_sum:

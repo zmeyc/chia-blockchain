@@ -21,7 +21,7 @@ from src.types.spend_bundle import SpendBundle
 from src.types.unfinished_block import UnfinishedBlock
 from src.util.hash import std_hash
 from src.util.ints import uint16, uint32, uint64
-from src.types.condition_var_pair import ConditionVarPair
+from src.types.condition_var_list import ConditionVarList
 from src.types.condition_opcodes import ConditionOpcode
 from tests.setup_nodes import setup_two_nodes, test_constants, bt
 from src.util.wallet_tools import WalletTool
@@ -403,7 +403,7 @@ class TestFullNodeProtocol:
         for _ in range(mempool_size + 1):
             receiver_puzzlehash = wallet_receiver.get_new_puzzlehash()
             puzzle_hashes.append(receiver_puzzlehash)
-            output = ConditionVarPair(ConditionOpcode.CREATE_COIN, receiver_puzzlehash, int_to_bytes(1000))
+            output = ConditionVarList(ConditionOpcode.CREATE_COIN, receiver_puzzlehash, int_to_bytes(1000))
             conditions_dict[ConditionOpcode.CREATE_COIN].append(output)
 
         spend_bundle = wallet_a.generate_signed_transaction(

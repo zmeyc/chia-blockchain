@@ -530,19 +530,19 @@ class TestBlockchainTransactions:
 #         # Coinbase that gets spent
 #         spent_block = blocks[1]
 #         bad_block = blocks[2]
-#         valid_cvp = ConditionVarPair(
+#         valid_cvl = ConditionVarList(
 #             ConditionOpcode.ASSERT_MY_COIN_ID,
 #             spent_block.get_coinbase().name(),
 #             None,
 #         )
-#         valid_dic = {valid_cvp.opcode: [valid_cvp]}
-#         bad_cvp = ConditionVarPair(
+#         valid_dic = {valid_cvl.opcode: [valid_cvp]}
+#         bad_cvl = ConditionVarList(
 #             ConditionOpcode.ASSERT_MY_COIN_ID,
 #             bad_block.get_coinbase().name(),
 #             None,
 #         )
 #
-#         bad_dic = {bad_cvp.opcode: [bad_cvp]}
+#         bad_dic = {bad_cvl.opcode: [bad_cvp]}
 #         bad_spend_bundle = wallet_a.generate_signed_transaction(
 #             1000, receiver_puzzlehash, spent_block.get_coinbase(), bad_dic
 #         )
@@ -599,23 +599,23 @@ class TestBlockchainTransactions:
 #         block2 = blocks[2]
 #
 #         # This condition requires block2 coinbase to be spent
-#         block1_cvp = ConditionVarPair(
+#         block1_cvl = ConditionVarList(
 #             ConditionOpcode.ASSERT_COIN_CONSUMED,
 #             block2.get_coinbase().name(),
 #             None,
 #         )
-#         block1_dic = {block1_cvp.opcode: [block1_cvp]}
+#         block1_dic = {block1_cvl.opcode: [block1_cvp]}
 #         block1_spend_bundle = wallet_a.generate_signed_transaction(
 #             1000, receiver_puzzlehash, block1.get_coinbase(), block1_dic
 #         )
 #
 #         # This condition requires block1 coinbase to be spent
-#         block2_cvp = ConditionVarPair(
+#         block2_cvl = ConditionVarList(
 #             ConditionOpcode.ASSERT_COIN_CONSUMED,
 #             block1.get_coinbase().name(),
 #             None,
 #         )
-#         block2_dic = {block2_cvp.opcode: [block2_cvp]}
+#         block2_dic = {block2_cvl.opcode: [block2_cvp]}
 #         block2_spend_bundle = wallet_a.generate_signed_transaction(
 #             1000, receiver_puzzlehash, block2.get_coinbase(), block2_dic
 #         )
@@ -670,8 +670,8 @@ class TestBlockchainTransactions:
 #         block1 = blocks[1]
 #
 #         # This condition requires block1 coinbase to be spent after index 11
-#         block1_cvp = ConditionVarPair(ConditionOpcode.ASSERT_BLOCK_INDEX_EXCEEDS, int_to_bytes(11), None)
-#         block1_dic = {block1_cvp.opcode: [block1_cvp]}
+#         block1_cvl = ConditionVarList(ConditionOpcode.ASSERT_BLOCK_INDEX_EXCEEDS, int_to_bytes(11), None)
+#         block1_dic = {block1_cvl.opcode: [block1_cvp]}
 #         block1_spend_bundle = wallet_a.generate_signed_transaction(
 #             1000, receiver_puzzlehash, block1.get_coinbase(), block1_dic
 #         )
@@ -727,8 +727,8 @@ class TestBlockchainTransactions:
 #
 #         # This condition requires block1 coinbase to be spent more than 10 block after it was farmed
 #         # block index has to be greater than (1 + 10 = 11)
-#         block1_cvp = ConditionVarPair(ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS, int_to_bytes(10), None)
-#         block1_dic = {block1_cvp.opcode: [block1_cvp]}
+#         block1_cvl = ConditionVarList(ConditionOpcode.ASSERT_BLOCK_AGE_EXCEEDS, int_to_bytes(10), None)
+#         block1_dic = {block1_cvl.opcode: [block1_cvp]}
 #         block1_spend_bundle = wallet_a.generate_signed_transaction(
 #             1000, receiver_puzzlehash, block1.get_coinbase(), block1_dic
 #         )
@@ -784,8 +784,8 @@ class TestBlockchainTransactions:
 #
 #         # This condition requires block1 coinbase to be spent after 3 seconds from now
 #         current_time_plus3 = uint64(int(time.time() * 1000) + 3000)
-#         block1_cvp = ConditionVarPair(ConditionOpcode.ASSERT_TIME_EXCEEDS, int_to_bytes(current_time_plus3), None)
-#         block1_dic = {block1_cvp.opcode: [block1_cvp]}
+#         block1_cvl = ConditionVarList(ConditionOpcode.ASSERT_TIME_EXCEEDS, int_to_bytes(current_time_plus3), None)
+#         block1_dic = {block1_cvl.opcode: [block1_cvp]}
 #         block1_spend_bundle = wallet_a.generate_signed_transaction(
 #             1000, receiver_puzzlehash, block1.get_coinbase(), block1_dic
 #         )
@@ -915,7 +915,7 @@ class TestBlockchainTransactions:
 #     block1 = blocks[1]
 #
 #     # This condition requires fee to be 10 mojo
-#     cvp_fee = ConditionVarPair(ConditionOpcode.ASSERT_FEE, int_to_bytes(10), None)
+#     cvp_fee = ConditionVarList(ConditionOpcode.ASSERT_FEE, int_to_bytes(10), None)
 #     block1_dic = {cvp_fee.opcode: [cvp_fee]}
 #     # This spendbundle has 9 mojo as fee
 #     invalid_spend_bundle = wallet_a.generate_signed_transaction(
@@ -946,7 +946,7 @@ class TestBlockchainTransactions:
 #     assert error is Err.ASSERT_FEE_CONDITION_FAILED
 #
 #     # This condition requires fee to be 10 mojo
-#     cvp_fee = ConditionVarPair(ConditionOpcode.ASSERT_FEE, int_to_bytes(10), None)
+#     cvp_fee = ConditionVarList(ConditionOpcode.ASSERT_FEE, int_to_bytes(10), None)
 #     condition_dict = {cvp_fee.opcode: [cvp_fee]}
 #     valid_spend_bundle = wallet_a.generate_signed_transaction(
 #         1000, receiver_puzzlehash, block1.get_coinbase(), condition_dict, 10
