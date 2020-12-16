@@ -59,7 +59,7 @@ def conditions_by_opcode(
     Takes a list of ConditionVarLists(cvl) and return dictionary of CVPs keyed of their opcode
     """
     d: Dict[ConditionOpcode, List[ConditionVarList]] = {}
-    cvp: ConditionVarList
+    cvl: ConditionVarList
     for cvl in conditions:
         if cvl.opcode not in d:
             d[cvl.opcode] = list()

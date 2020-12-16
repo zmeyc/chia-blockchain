@@ -100,7 +100,7 @@ def blockchain_check_conditions_dict(
     Check all conditions against current state.
     """
     for con_list in conditions_dict.values():
-        cvp: ConditionVarList
+        cvl: ConditionVarList
         for cvl in con_list:
             error = None
             if cvl.opcode is ConditionOpcode.ASSERT_COIN_CONSUMED:
