@@ -109,7 +109,7 @@ class WeightProofHandler:
                         break
 
                 if choose:
-                    segments = await self.__create_sub_epoch_segment(sub_block, sub_epoch_blocks_n, sub_epoch_n)
+                    segments = await self.__create_sub_epoch_segments(sub_block, sub_epoch_blocks_n, sub_epoch_n)
                     if segments is None:
                         self.log.error(f"failed while building segments for sub epoch {sub_epoch_n} ")
                         return None
