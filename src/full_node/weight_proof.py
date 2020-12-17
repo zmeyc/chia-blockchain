@@ -267,14 +267,13 @@ class WeightProofHandler:
         init = await self.block_cache.init_headers(
             uint32(block.sub_block_height - sub_epoch_blocks_n), block.sub_block_height
         )
-        self.log.error(f"cache res {init}")
         assert init is True
         segments: List[SubEpochChallengeSegment] = []
         curr: Optional[SubBlockRecord] = block
         assert self.block_cache is not None
         last_slot_hb = await self.block_cache.header_block(block.header_hash)
         if last_slot_hb is None:
-            self.log.error(f"could not find block in cache 3 {block.height}")
+            self.log.error(f"could not find block height {block.height} ")
             return None
         assert last_slot_hb.finished_sub_slots is not None
 
@@ -298,7 +297,7 @@ class WeightProofHandler:
             assert curr is not None
             curr = self.block_cache.sub_block_record(curr.prev_hash)
             if curr is None:
-                self.log.error("could not find block record in cache")
+                self.log.error("could not find block record")
             count = uint32(count - 1)
         return segments
 
@@ -327,7 +326,7 @@ class WeightProofHandler:
 
         end_height_hb = await self.block_cache.height_to_header_block(uint32(end_height))
         if end_height_hb is None:
-            self.log.error("could not find block in cache 1")
+            self.log.error(f"could not find block height {end_height}")
             return None
         challenge_slot_end_sub_slots = await self.__get_slot_end_vdf(end_height_hb)
         if challenge_slot_end_sub_slots is None:
@@ -347,9 +346,10 @@ class WeightProofHandler:
         sub_slots_data: List[SubSlotData] = []
         max_height = self.block_cache.max_height()
         while curr.sub_block_height < max_height:
+            prev = curr
             curr = await self.block_cache.height_to_header_block(curr.sub_block_height + 1)
             if curr is None:
-                self.log.error("could not find block in cache 2")
+                self.log.error(f"could not find block height {prev.sub_block_height}  ")
                 return None
             if len(curr.finished_sub_slots) > 0:
                 # slot finished combine proofs and add slot data to list

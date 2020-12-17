@@ -115,7 +115,7 @@ class FullNode:
             BlockCache(
                 self.blockchain.sub_blocks,
                 self.blockchain.sub_height_to_hash,
-                uint32(len(self.blockchain.sub_blocks)),
+                uint32(len(sorted(self.blockchain.sub_blocks.keys())[-1])),
                 {},
                 self.blockchain.sub_epoch_summaries,
                 self.block_store,
