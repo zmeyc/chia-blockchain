@@ -100,9 +100,7 @@ async def init_block_cache(blockchain: Blockchain, start: uint32 = uint32(0), st
 async def init_header_cache(block_store: BlockStore, start: uint32, stop: uint32) -> Dict[bytes32, HeaderBlock]:
     full_blocks: List[FullBlock] = []
     batch_blocks: List[uint32] = []
-    print("cache warmup")
     for x in range(start, stop + 1):
-        print("cache warmup block: ", x)
         batch_blocks.append(uint32(x))
 
         if len(batch_blocks) == BlockCache.BATCH_SIZE:
