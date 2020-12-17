@@ -100,11 +100,14 @@ class WeightProofHandler:
             curr_height = uint32(curr_height + 1)
 
         self.log.debug(f"total overflow blocks in proof {total_overflow_blocks}")
-        self.log.info(f"sub_spochs: {len(sub_epoch_data)}")
+        self.log.info(f"sub_epochs: {len(sub_epoch_data)}")
         recent_chain = await self.get_recent_chain(tip_height)
+        if recent_chain is None:
+            self.log.info(f"failed adding recent chain")
+            return None
         return WeightProof(sub_epoch_data, sub_epoch_segments, recent_chain)
 
-    async def get_recent_chain(self, tip_height: uint32) -> List[ProofBlockHeader]:
+    async def get_recent_chain(self, tip_height: uint32) -> Optional[List[ProofBlockHeader]]:
         recent_chain: List[ProofBlockHeader] = []
         start_height = uint32(tip_height - self.constants.WEIGHT_PROOF_RECENT_BLOCKS)
 
@@ -113,7 +116,8 @@ class WeightProofHandler:
         while start_height <= tip_height:
             # add to needed reward chain recent blocks
             header_block = await self.block_cache.height_to_header_block(start_height)
-            assert header_block is not None
+            if header_block is None:
+                return None
             recent_chain.append(ProofBlockHeader(header_block.finished_sub_slots, header_block.reward_chain_sub_block))
             start_height = start_height + uint32(1)  # type: ignore
         return recent_chain
