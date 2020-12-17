@@ -26,7 +26,7 @@ export function updateLatestBlocks() {
 
 export function getBlocksRecords(end, count = 10) {
   return async (dispatch) => {
-    const start = end - count;
+    const start = Math.max(end - count, 0);
 
     const { data: { blocks } } = await async_api(
       dispatch,
