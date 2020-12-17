@@ -120,7 +120,7 @@ async def _test_map_summaries(blocks, header_cache, height_to_hash, sub_blocks):
         curr = sub_blocks[curr.prev_hash]
 
     wpf = WeightProofHandler(
-        test_constants, BlockCache(sub_blocks, height_to_hash, header_cache, blocks[-1].sub_block_height)
+        test_constants, BlockCache(sub_blocks, height_to_hash, blocks[-1].sub_block_height, header_cache)
     )
     wpf.log.setLevel(logging.INFO)
     initialize_logging("", {"log_stdout": True}, DEFAULT_ROOT_PATH)
@@ -195,7 +195,7 @@ class TestWeightProof:
         blocks = default_1000_blocks
         header_cache, height_to_hash, sub_blocks = await load_blocks_dont_validate(blocks)
         wpf = WeightProofHandler(
-            test_constants, BlockCache(sub_blocks, height_to_hash, blocks[-1].sub_block_height, header_cache)
+            test_constants, BlockCache(sub_blocks, height_to_hash, blocks[-1].sub_block_height + 1, header_cache)
         )
         wpf.log.setLevel(logging.INFO)
         initialize_logging("", {"log_stdout": True}, DEFAULT_ROOT_PATH)

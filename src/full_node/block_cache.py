@@ -75,12 +75,11 @@ class BlockCache:
     def clean(self):
         self._header_cache = {}
 
-    async def init_headers(self, start: uint32, stop: uint32) -> bool:
+    async def init_headers(self, start: uint32, stop: uint32):
         if self.block_store is None:
-            return False
+            return
         self._header_cache = {}
         self._header_cache = await init_header_cache(self.block_store, start, stop)
-        return True
 
 
 async def init_block_cache(blockchain: Blockchain, start: uint32 = uint32(0), stop: uint32 = uint32(0)) -> BlockCache:

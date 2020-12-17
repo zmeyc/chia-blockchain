@@ -264,10 +264,7 @@ class WeightProofHandler:
         """
         # get headers in cache
         self.log.error(f"init cache {uint32(block.sub_block_height - sub_epoch_blocks_n)}, {block.sub_block_height}")
-        init = await self.block_cache.init_headers(
-            uint32(block.sub_block_height - sub_epoch_blocks_n), block.sub_block_height
-        )
-        assert init is True
+        await self.block_cache.init_headers(uint32(block.sub_block_height - sub_epoch_blocks_n), block.sub_block_height)
         segments: List[SubEpochChallengeSegment] = []
         curr: Optional[SubBlockRecord] = block
         assert self.block_cache is not None
