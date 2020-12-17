@@ -110,12 +110,15 @@ class FullNode:
         start_time = time.time()
         self.blockchain = await Blockchain.create(self.coin_store, self.block_store, self.constants)
         self.mempool_manager = MempoolManager(self.coin_store, self.constants)
+        maxheight = 0
+        if self.blockchain.sub_height_to_hash is not None:
+            maxheight = uint32(len(sorted(self.blockchain.sub_blocks.keys())[-1]))
         self.weight_proof_handler = WeightProofHandler(
             self.constants,
             BlockCache(
                 self.blockchain.sub_blocks,
                 self.blockchain.sub_height_to_hash,
-                uint32(len(sorted(self.blockchain.sub_blocks.keys())[-1])),
+                maxheight,
                 {},
                 self.blockchain.sub_epoch_summaries,
                 self.block_store,
