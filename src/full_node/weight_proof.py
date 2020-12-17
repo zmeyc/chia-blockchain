@@ -22,7 +22,7 @@ from src.types.weight_proof import (
 )
 from src.util.hash import std_hash
 from src.util.ints import uint32, uint64, uint8, uint128
-
+import math
 
 class WeightProofHandler:
     def __init__(
@@ -59,10 +59,24 @@ class WeightProofHandler:
             self.log.error(f"build weight proof, for unknown peak  {tip}")
             return None
         tip_height = tip.sub_block_height
-        blocks_left = tip_height
         curr_height = uint32(0)
         total_overflow_blocks = 0
         sub_epoch_n = uint32(0)
+
+        for i in range(0, self.constants.WEIGHT_PROOF_RECENT_BLOCKS):
+            next = tip.sub_block_height - i
+            if next < 0:
+                break
+            header_block = self.block_cache.height_to_header_block(next)
+            if header_block is None:
+                self.log.error("could not find block in cache")
+                return None
+            proof_blocks.append(
+                ProofBlockHeader(header_block.finished_sub_slots, header_block.reward_chain_sub_block)
+            )
+        last_l_block_weight = proof_blocks[0].reward_chain_sub_block.weight - proof_blocks[-1].reward_chain_sub_block.weight
+
+        weight_to_check = choose_sub_epoch(rng, tip.weight, last_l_block_weight)
 
         while curr_height < tip.sub_block_height:
             # next sub block
@@ -81,14 +95,21 @@ class WeightProofHandler:
                 sub_epoch_data.append(make_sub_epoch_data(sub_block.sub_epoch_summary_included))
                 # get sub_epoch_blocks_n in sub_epoch
                 sub_epoch_blocks_n = get_sub_epoch_block_num(sub_block, self.block_cache)
+                start_of_epoch = self.block_cache.height_to_sub_block_record(sub_block.sub_block_height - sub_epoch_blocks_n)
 
                 if sub_epoch_blocks_n is None:
                     self.log.error("could not get sub epoch block number")
                     return None
 
-                #   sample sub epoch
-                if choose_sub_epoch(sub_epoch_blocks_n, rng, tip_height):
-                    segments = await self.__create_sub_epoch_segments(sub_block, sub_epoch_blocks_n, sub_epoch_n)
+                # sample sub epoch
+                choose = False
+                for weight in weight_to_check:
+                    if start_of_epoch.weight < weight < sub_block.weight:
+                        choose = True
+                        break
+
+                if choose:
+                    segments = await self.__create_sub_epoch_segment(sub_block, sub_epoch_blocks_n, sub_epoch_n)
                     if segments is None:
                         self.log.error(f"failed while building segments for sub epoch {sub_epoch_n} ")
                         return None
@@ -99,17 +120,6 @@ class WeightProofHandler:
                     sub_epoch_n = uint32(sub_epoch_n + 1)
                     sub_epoch_segments.extend(segments)
 
-            if tip_height - curr_height <= self.constants.WEIGHT_PROOF_RECENT_BLOCKS:
-                # add to needed reward chain recent blocks
-                header_block = self.block_cache.height_to_header_block(curr_height)
-                if header_block is None:
-                    self.log.error("could not find block in cache")
-                    return None
-                proof_blocks.append(
-                    ProofBlockHeader(header_block.finished_sub_slots, header_block.reward_chain_sub_block)
-                )
-
-            blocks_left = uint32(blocks_left - 1)
             curr_height = uint32(curr_height + 1)
         self.log.debug(f"total overflow blocks in proof {total_overflow_blocks}")
         self.log.info(f"sub_spochs: {len(sub_epoch_data)}")
@@ -598,15 +608,19 @@ def get_sub_epoch_block_num(last_block: SubBlockRecord, cache: BlockCache) -> Op
     return count
 
 
-def choose_sub_epoch(sub_epoch_blocks_n: uint32, rng: random.Random, total_number_of_blocks: uint32) -> bool:
-    prob = sub_epoch_blocks_n / total_number_of_blocks
-    i = 0
-    while i < sub_epoch_blocks_n:
-        if rng.random() < prob:
-            return True
-        i += 1
-    return False
-
+def choose_sub_epoch(rng: random.Random, total_weight, last_l_weight) -> List[uint32]:
+    weight_to_check = []
+    delta = last_l_weight / total_weight
+    lambda_l = 100
+    c = 0.5
+    prob_of_adv_suceeding = (1 - math.log(c, delta))
+    queries = (-lambda_l * math.log(2, prob_of_adv_suceeding))
+    for i in range(int(queries) + 1):
+        u = rng.random()
+        q = 1 - delta ** u
+        weight = q * total_weight
+        weight_to_check.append(weight)
+    return weight_to_check
 
 # returns a challenge chain vdf from infusion point to end of slot
 def count_sub_epochs_in_range(
