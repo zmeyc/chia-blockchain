@@ -313,9 +313,6 @@ class FullNode:
                 return await self.sync_from_fork_point(-1, sync_start_time, heaviest_peak.sub_block_height)
 
             fork_point_height = self.sync_store.get_potential_fork_point(heaviest_peak.header_hash)
-            if fork_point_height is None:
-                self.log.info("No fork point for peak, fetch weight proof")
-                return
             return await self.sync_from_fork_point(
                 fork_point_height - 1, sync_start_time, heaviest_peak.sub_block_height
             )
