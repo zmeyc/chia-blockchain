@@ -635,6 +635,7 @@ class WalletNode:
                 break
 
         if len(removals) > 0 or request_all_removals:
+            breakpoint()
             if request_all_removals:
                 removals_request = wallet_protocol.RequestRemovals(block_i.sub_block_height, block_i.header_hash, None)
             else:

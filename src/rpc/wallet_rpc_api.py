@@ -5,7 +5,7 @@ from pathlib import Path
 
 from typing import List, Optional, Tuple, Dict, Callable
 
-from blspy import PrivateKey
+from blspy import PrivateKey, G1Element
 
 from src.util.byte_types import hexstr_to_bytes
 from src.util.chech32 import encode_puzzle_hash, decode_puzzle_hash
@@ -21,12 +21,14 @@ from src.server.outbound_message import NodeType, Message
 from src.simulator.simulator_protocol import FarmNewBlockProtocol
 from src.util.ints import uint64, uint32
 from src.types.sized_bytes import bytes32
+from src.types.spend_bundle import SpendBundle
 from src.wallet.trade_record import TradeRecord
 from src.wallet.util.backup_utils import get_backup_info, download_backup, upload_backup
 from src.wallet.util.trade_utils import trade_record_to_dict
 from src.wallet.util.wallet_types import WalletType
 from src.wallet.rl_wallet.rl_wallet import RLWallet
 from src.wallet.cc_wallet.cc_wallet import CCWallet
+from src.wallet.did_wallet.did_wallet import DIDWallet
 from src.wallet.wallet_info import WalletInfo
 from src.wallet.wallet_node import WalletNode
 from src.wallet.transaction_record import TransactionRecord
@@ -78,6 +80,14 @@ class WalletRpcApi:
             "/get_trade": self.get_trade,
             "/get_all_trades": self.get_all_trades,
             "/cancel_trade": self.cancel_trade,
+            # DID Wallet
+            "/did_update_recovery_ids": self.did_update_recovery_ids,
+            "/did_spend": self.did_spend,
+            "/did_get_pubkey": self.did_get_pubkey,
+            "/did_get_did": self.did_get_did,
+            "/did_recovery_spend": self.did_recovery_spend,
+            "/did_get_recovery_list": self.did_get_recovery_list,
+            "/did_create_attest": self.did_create_attest,
             # RL wallet
             "/rl_set_user_info": self.rl_set_user_info,
             "/send_clawback_transaction:": self.send_clawback_transaction,
@@ -322,7 +332,7 @@ class WalletRpcApi:
                 cc_wallet = await CCWallet.create_wallet_for_cc(wallet_state_manager, main_wallet, request["colour"])
                 asyncio.create_task(self._create_backup_and_upload(host))
                 return {"type": cc_wallet.type()}
-        if request["wallet_type"] == "rl_wallet":
+        elif request["wallet_type"] == "rl_wallet":
             if request["rl_type"] == "admin":
                 log.info("Create rl admin wallet")
                 rl_admin: RLWallet = await RLWallet.create_rl_admin(wallet_state_manager)
@@ -352,6 +362,53 @@ class WalletRpcApi:
                     "type": rl_user.type(),
                     "pubkey": rl_user.rl_info.user_pubkey.hex(),
                 }
+        elif request["wallet_type"] == "did_wallet":
+            if request["did_type"] == "new":
+                backup_dids = []
+                num_needed = 0
+                for d in request["backup_dids"]:
+                    backup_dids.append(bytes.fromhex(d))
+                if len(backup_dids) > 0:
+                    num_needed = uint64(request["num_of_backup_ids_needed"])
+                did_wallet: DIDWallet = await DIDWallet.create_new_did_wallet(
+                    wallet_state_manager,
+                    main_wallet,
+                    int(request["amount"]),
+                    backup_dids,
+                    num_needed,
+                )
+                my_did = did_wallet.get_my_DID()
+                return {
+                    "type": did_wallet.type(),
+                    "my_did": my_did,
+                    "wallet_id": did_wallet.id(),
+                }
+            elif request["did_type"] == "recovery":
+                did_wallet = await DIDWallet.create_new_did_wallet_from_recovery(
+                    wallet_state_manager, main_wallet, request["filename"]
+                )
+                my_did = did_wallet.get_my_DID()
+                coin_name = did_wallet.did_info.temp_coin.name().hex()
+                coin_list = did_wallet.did_info.temp_coin.as_list()
+                newpuzhash = (await did_wallet.get_new_puzzle()).get_tree_hash().hex()
+                pubkey = bytes(
+                    (
+                        await wallet_state_manager.get_unused_derivation_record(
+                            did_wallet.wallet_info.id
+                        )
+                    ).pubkey
+                ).hex()
+                return {
+                    "type": did_wallet.type(),
+                    "my_did": my_did,
+                    "wallet_id": did_wallet.id(),
+                    "coin_name": coin_name,
+                    "coin_list": coin_list,
+                    "newpuzhash": newpuzhash,
+                    "pubkey": pubkey,
+                    "backup_dids": did_wallet.did_info.backup_ids,
+                    "num_verifications_required": did_wallet.did_info.num_of_backup_ids_needed,
+                }
 
     ##########################################################################################
     # Wallet
@@ -365,7 +422,10 @@ class WalletRpcApi:
         pending_balance = await wallet.get_unconfirmed_balance()
         spendable_balance = await wallet.get_spendable_balance()
         pending_change = await wallet.get_pending_change_balance()
-        if wallet.type() == WalletType.COLOURED_COIN:
+        if(
+            wallet.type() == WalletType.COLOURED_COIN
+            or wallet.type() == WalletType.DISTRIBUTED_ID
+        ):
             frozen_balance = 0
         else:
             frozen_balance = await wallet.get_frozen_amount()
@@ -462,6 +522,133 @@ class WalletRpcApi:
         file_path = Path(request["file_path"])
         await self.service.wallet_state_manager.create_wallet_backup(file_path)
         return {}
+
+    ##########################################################################################
+    # Distributed Identities
+    ##########################################################################################
+
+    async def did_update_recovery_ids(self, request):
+        wallet_id = int(request["wallet_id"])
+        wallet: DIDWallet = self.service.wallet_state_manager.wallets[wallet_id]
+        recovery_list = []
+        for _ in request["new_list"]:
+            recovery_list.append(bytes.fromhex(_))
+        if "num_verifications_required" in request:
+            new_amount_verifications_required = uint64(
+                request["num_verifications_required"]
+            )
+        else:
+            new_amount_verifications_required = len(recovery_list)
+        success = await wallet.update_recovery_list(
+            recovery_list, new_amount_verifications_required
+        )
+        # Update coin with new ID info
+        updated_puz = await wallet.get_new_puzzle()
+        spend_bundle = await wallet.create_spend(updated_puz.get_tree_hash())
+        if spend_bundle is not None and success:
+            return {"success": True}
+        return {"success": False}
+
+    async def did_spend(self, request):
+        wallet_id = int(request["wallet_id"])
+        wallet: DIDWallet = self.service.wallet_state_manager.wallets[wallet_id]
+        spend_bundle = await wallet.create_spend(request["puzzlehash"])
+        if spend_bundle is not None:
+            return {"success": True}
+        return {"success": False}
+
+    async def did_get_did(self, request):
+        wallet_id = int(request["wallet_id"])
+        wallet: DIDWallet = self.service.wallet_state_manager.wallets[wallet_id]
+        my_did: str = wallet.get_my_DID()
+        coins = await wallet.select_coins(1)
+        if coins is None or coins == set():
+            return {"success": True, "my_did": my_did}
+        else:
+            coin = coins.pop()
+            return {"success": True, "my_did": my_did, "coin_id": coin.name()}
+
+    async def did_get_recovery_list(self, request):
+        wallet_id = int(request["wallet_id"])
+        wallet: DIDWallet = self.service.wallet_state_manager.wallets[wallet_id]
+        recovery_list = wallet.did_info.backup_ids
+        recover_hex_list = []
+        for _ in recovery_list:
+            recover_hex_list.append(_.hex())
+        return {
+            "success": True,
+            "wallet_id": wallet_id,
+            "recover_list": recover_hex_list,
+            "num_required": wallet.did_info.num_of_backup_ids_needed,
+        }
+
+    async def did_recovery_spend(self, request):
+        wallet_id = int(request["wallet_id"])
+        wallet: DIDWallet = self.service.wallet_state_manager.wallets[wallet_id]
+
+        spend_bundle_list = []
+        for i in request["spend_bundles"]:
+            spend_bundle_list.append(SpendBundle.from_bytes(bytes.fromhex(i)))
+        # info_dict {0xidentity: "(0xparent_info 0xinnerpuz amount)"}
+        info_dict = request["info_dict"]
+        my_recovery_list: List[bytes] = wallet.did_info.backup_ids
+        if len(info_dict) < wallet.did_info.num_of_backup_ids_needed:
+            return {"success": False, "reason": "insufficient messages"}
+        # convert info dict into recovery list - same order as wallet
+        info_list = []
+        for entry in my_recovery_list:
+            if entry.hex() in info_dict:
+                info_list.append(
+                    [
+                        bytes.fromhex(info_dict[entry.hex()][0]),
+                        bytes.fromhex(info_dict[entry.hex()][1]),
+                        info_dict[entry.hex()][2],
+                    ]
+                )
+            else:
+                info_list.append([])
+        message_spend_bundle = SpendBundle.aggregate(spend_bundle_list)
+
+        pubkey = G1Element.from_bytes(bytes.fromhex(request["pubkey"]))
+
+        success = await wallet.recovery_spend(
+            wallet.did_info.temp_coin,
+            bytes.fromhex(request["puzhash"]),
+            info_list,
+            pubkey,
+            message_spend_bundle,
+        )
+        return {"success": success}
+
+    async def did_get_pubkey(self, request):
+        wallet_id = int(request["wallet_id"])
+        wallet: DIDWallet = self.service.wallet_state_manager.wallets[wallet_id]
+        pubkey = bytes(
+            (
+                await wallet.wallet_state_manager.get_unused_derivation_record(
+                    wallet_id
+                )
+            ).pubkey
+        ).hex()
+        return {"success": True, "punkey": pubkey}
+
+    async def did_create_attest(self, request):
+        wallet_id = int(request["wallet_id"])
+        wallet: DIDWallet = self.service.wallet_state_manager.wallets[wallet_id]
+        info = await wallet.get_info_for_recovery()
+        coin = bytes.fromhex(request["coin_name"])
+        pubkey = G1Element.from_bytes(bytes.fromhex(request["pubkey"]))
+        spend_bundle = await wallet.create_attestment(
+            coin, bytes.fromhex(request["puzhash"]), pubkey
+        )
+        if spend_bundle is not None:
+            return {
+                "success": True,
+                "message_spend_bundle": bytes(spend_bundle).hex(),
+                "info": [info[0].hex(), info[1].hex(), info[2]],
+            }
+        else:
+            return {"success": False}
 
     ##########################################################################################
     # Coloured Coins and Trading

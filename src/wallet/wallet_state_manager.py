@@ -403,6 +403,7 @@ class WalletStateManager:
         """
         record_list: Set[WalletCoinRecord] = await self.coin_store.get_unspent_coins_for_wallet(wallet_id)
         amount: uint64 = uint64(0)
+        breakpoint()
         for record in record_list:
             amount = uint64(amount + record.coin.amount)
         self.log.info(f"Confirmed balance amount is {amount}")
