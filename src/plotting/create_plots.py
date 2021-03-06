@@ -102,6 +102,8 @@ def create_plots(args, root_path, use_datetime=True, test_private_keys: Optional
         tmp2_dir_created = True
 
     mkdir(args.final_dir)
+    if args.p1maxproc > 0 and not args.runtime_dir.exists():
+        mkdir(args.runtime_dir)
 
     finished_filenames = []
     for i in range(num):
@@ -174,6 +176,8 @@ def create_plots(args, root_path, use_datetime=True, test_private_keys: Optional
                 args.stripe_size,
                 args.num_threads,
                 args.nobitfield,
+                str(args.runtime_dir),
+                args.p1maxproc
             )
             finished_filenames.append(filename)
         else:
