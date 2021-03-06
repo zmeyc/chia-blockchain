@@ -245,5 +245,7 @@ async def summary(rpc_port: int, wallet_rpc_port: int, harvester_rpc_port: int, 
     if blockchain_state is not None and plots is not None:
         proportion = total_plot_size / blockchain_state["space"] if blockchain_state["space"] else -1
         minutes = int((await get_average_block_time(rpc_port) / 60) / proportion) if proportion else -1
-    print("Expected time to win: " + format_minutes(minutes))
+    # print("Expected time to win: " + format_minutes(minutes))
+    days = minutes / 1440
+    print(f"Expected time to win: {days:.2f} days")
     print("Note: log into your key using 'chia wallet show' to see rewards for each key")
