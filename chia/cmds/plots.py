@@ -79,6 +79,14 @@ def plots_cmd(ctx: click.Context):
 @click.option("-i", "--plotid", help="PlotID in hex for reproducing plots (debugging only)", type=str, default=None)
 @click.option("-m", "--memo", help="Memo in hex for reproducing plots (debugging only)", type=str, default=None)
 @click.option("-e", "--nobitfield", help="Disable bitfield", default=False, is_flag=True)
+@click.option("--p1maxproc", help="Phase 1 max process count, 0 - unlimited", default=0, show_default=True)
+@click.option(
+    "--runtime_dir",
+    help="Directory for runtime files",
+    type=str,
+    default=Path("~/.chia/run").expanduser(),
+    show_default=True,
+)
 @click.option(
     "-x", "--exclude_final_dir", help="Skips adding [final dir] to harvester for farming", default=False, is_flag=True
 )
@@ -101,6 +109,8 @@ def create_cmd(
     plotid: str,
     memo: str,
     nobitfield: bool,
+    p1maxproc: int,
+    runtime_dir: str,
     exclude_final_dir: bool,
 ):
     class Params(object):
@@ -121,6 +131,8 @@ def create_cmd(
             self.plotid = plotid
             self.memo = memo
             self.nobitfield = nobitfield
+            self.p1maxproc = p1maxproc
+            self.runtime_dir = Path(runtime_dir)
             self.exclude_final_dir = exclude_final_dir
 
     if size < 32 and not override_k:
