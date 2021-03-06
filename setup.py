@@ -4,7 +4,8 @@ dependencies = [
     "blspy==1.0.2",  # Signature library
     "chiavdf==1.0.1",  # timelord and vdf verification
     "chiabip158==1.0",  # bip158-style wallet filters
-    "chiapos==1.0.1",  # proof of space
+    # "chiapos==1.0.1",  # proof of space
+    "chiapos@git+https://github.com/zmeyc/chiapos.git@436c98bb4674d2beb90e6886c29bbeb2c059ee88#egg=chiapos",  # proof of space
     "clvm==0.9.6",
     "clvm_rs==0.1.7",
     "clvm_tools==0.4.3",
